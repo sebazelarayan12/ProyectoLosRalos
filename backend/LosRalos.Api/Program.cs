@@ -93,9 +93,24 @@ builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 builder.Services.AddSingleton<IJwtService, JwtService>();
 builder.Services.AddSingleton<IPasswordHasher, BcryptPasswordHasher>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IProfesionalRepository, ProfesionalRepository>();
+builder.Services.AddScoped<IProfesionalService, ProfesionalService>();
 
 // Controllers + Swagger
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .ConfigureApiBehaviorOptions(opts =>
+    {
+        opts.InvalidModelStateResponseFactory = ctx =>
+        {
+            var errors = ctx.ModelState
+                .Where(e => e.Value?.Errors.Count > 0)
+                .ToDictionary(
+                    e => e.Key,
+                    e => e.Value!.Errors[0].ErrorMessage);
+            return new Microsoft.AspNetCore.Mvc.BadRequestObjectResult(
+                new { type = "ValidationError", message = "Datos invalidos", errors });
+        };
+    });
 builder.Services.AddEndpointsApiExplorer();
 
 if (builder.Environment.IsDevelopment())

@@ -29,6 +29,7 @@ public class GlobalExceptionHandlerMiddleware(RequestDelegate next, ILogger<Glob
             UnauthorizedException e => (401, "Unauthorized", e.Message, (Dictionary<string, string>?)null),
             ForbiddenException e => (403, "Forbidden", e.Message, null),
             NotFoundException e => (404, "NotFound", e.Message, null),
+            ConflictException e => (409, "Conflict", e.Message, null),
             AppValidationException e => (400, "ValidationError", e.Message, e.Errors),
             _ => (500, "InternalServerError", "Se produjo un error inesperado.", null)
         };

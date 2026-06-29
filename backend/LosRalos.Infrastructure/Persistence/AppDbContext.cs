@@ -10,6 +10,7 @@ public sealed class AppDbContext(
 {
     public DbSet<Usuario> Usuarios => Set<Usuario>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    public DbSet<Profesional> Profesionales => Set<Profesional>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

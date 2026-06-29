@@ -217,6 +217,47 @@ docker-compose up -d
 
 ---
 
+## Patrones establecidos (Paso 3)
+
+### Cursor-based pagination
+
+Usar (Apellido, FechaCreacion) como clave del cursor — NO Guid como secundario (C# no tiene > para Guid y EF Core no traduce Guid.CompareTo). DateTime si traduce a SQL con >. Encodar como base64(JSON).
+
+En EF Core LINQ para comparar strings: `string.Compare(a, b) > 0` — se traduce a SQL. NO usar `a > b` en C# (CS0019).
+
+### Check constraints en EF Core 8
+
+Usar `builder.ToTable("tabla", t => { t.HasCheckConstraint(...); })` — NO `builder.HasCheckConstraint(...)` directo (obsoleto CS0618).
+Siempre citar columnas con doble comilla en SQL de constraints: `"\"ColumnaName\" IN ('Valor1', 'Valor2')"`.
+
+### GIN trigram index
+
+No configurable via fluent API. Agregar como SQL crudo en migration:
+```csharp
+migrationBuilder.Sql(@"CREATE EXTENSION IF NOT EXISTS pg_trgm;");
+migrationBuilder.Sql(@"CREATE INDEX idx_X_apellido_trgm ON tabla USING GIN (""Apellido"" gin_trgm_ops);");
+```
+Agregar DROP correspondiente en Down():
+```csharp
+migrationBuilder.Sql(@"DROP INDEX IF EXISTS idx_X_apellido_trgm;");
+```
+
+### appsettings.Testing.json — OBLIGATORIO para integration tests
+
+Cuando los tests usan `UseEnvironment("Testing")`, ASP.NET no carga `appsettings.Development.json`. Si `appsettings.json` tiene `Jwt:Secret: ""`, `SymmetricSecurityKey(byte[0])` lanza `ArgumentException` en startup y todos los requests devuelven 500.
+
+SIEMPRE crear `appsettings.Testing.json` con los mismos secretos que inyectan los tests via `ConfigureAppConfiguration`. Los valores deben coincidir exactamente.
+
+### AuditLog — DetalleExtra en edicion
+
+`DetalleExtra` para `EditarProfesional` = nombres de campos cambiados separados por coma, SIN valores (privacidad). `ApplyPatch` retorna `List<string>` de nombres. No incluir campos que no cambiaron.
+
+### Seguridad — ProfesionalResumenResponse
+
+El listado (`GET /profesionales`) usa `ProfesionalResumenResponse` que NO incluye DNI ni CUIL. Solo `ProfesionalDetalleResponse` (GET /{id}) expone datos sensibles, y ese endpoint registra `VerLegajo` en AuditLog.
+
+---
+
 ## Checklist QA (antes de dar un paso por completo)
 
 - [ ] Migration creada y aplicada sin errores

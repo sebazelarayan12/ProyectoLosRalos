@@ -9,7 +9,10 @@ public class UsuarioConfiguration : IEntityTypeConfiguration<Usuario>
 {
     public void Configure(EntityTypeBuilder<Usuario> builder)
     {
-        builder.ToTable("usuarios");
+        builder.ToTable("usuarios", t =>
+        {
+            t.HasCheckConstraint("chk_usuario_rol", "\"Rol\" IN ('Admin', 'Visor')");
+        });
 
         builder.HasKey(u => u.Id);
         builder.Property(u => u.Id)
@@ -31,6 +34,5 @@ public class UsuarioConfiguration : IEntityTypeConfiguration<Usuario>
             .IsUnique()
             .HasDatabaseName("uq_usuario_email");
 
-        builder.HasCheckConstraint("chk_usuario_rol", "\"Rol\" IN ('Admin', 'Visor')");
     }
 }
