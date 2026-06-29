@@ -1,0 +1,28 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+
+# Env
+.env
+!.env.example
+
+# EF Core
+*.db
+
+# IDE
+.idea/
+.vscode/
+
+# Logs
+logs/
+*.log
+
+# Node
+node_modules/
+dist/
+
+# Docker uploads
+uploads/
