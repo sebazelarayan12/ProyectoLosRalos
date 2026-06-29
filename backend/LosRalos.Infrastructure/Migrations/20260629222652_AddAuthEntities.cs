@@ -28,7 +28,7 @@ namespace LosRalos.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_usuarios", x => x.Id);
-                    table.CheckConstraint("chk_usuario_rol", "rol IN ('Admin', 'Visor')");
+                    table.CheckConstraint("chk_usuario_rol", "\"Rol\" IN ('Admin', 'Visor')");
                 });
 
             migrationBuilder.CreateTable(
@@ -64,7 +64,7 @@ namespace LosRalos.Infrastructure.Migrations
                 name: "idx_auditlog_timestamp",
                 table: "audit_logs",
                 column: "Timestamp",
-                descending: new bool[0]);
+                descending: new[] { true });
 
             migrationBuilder.CreateIndex(
                 name: "idx_auditlog_usuario_id",

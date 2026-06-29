@@ -2,6 +2,71 @@
 
 Sistema web para consulta y gestion de legajos digitales de profesionales del hospital.
 
+## Delegacion de contexto
+
+Cada subcarpeta tiene su propio `CLAUDE.md` con reglas especificas:
+
+- `backend/CLAUDE.md` — reglas, convenciones y checklist para trabajo en .NET/C#
+- `frontend/CLAUDE.md` — reglas, convenciones y checklist para trabajo en React/Vite
+
+Cuando trabajes dentro de `backend/` o `frontend/`, el `CLAUDE.md` de esa carpeta aplica ademas de este.
+En caso de contradiccion, el `CLAUDE.md` mas especifico (subcarpeta) gana — excepto el spec, que siempre gana a todo.
+
+---
+
+## Skills — uso obligatorio
+
+Si la tarea coincide con un skill disponible en `<available_skills>`, invocarlo con la herramienta `Skill` ANTES de generar codigo o respuesta. Esto no es opcional.
+
+### Backend
+
+| Accion | Skill |
+|--------|-------|
+| Crear o editar entidades, services, controllers, repositorios | `dotnet-best-practices` |
+| Disenar un endpoint REST o definir contrato HTTP | `api-design-principles` |
+| Implementar cualquier feature (tests primero) | `test-driven-development` |
+| Depurar excepciones, errores de runtime o tests fallidos | `systematic-debugging` |
+| Elegir entre dos enfoques de implementacion | `brainstorming` |
+| Escribir o revisar una migration o query compleja | `supabase-postgres-best-practices` |
+| Tocar auth, file upload, datos sensibles | `security-review` |
+
+### Frontend
+
+| Accion | Skill |
+|--------|-------|
+| Disenar pantalla, componente o layout | `ui-ux-pro-max` + `frontend-design` |
+| Implementar componentes React, hooks, routing | `vercel-react-best-practices` |
+| Inicializar o agregar componentes shadcn/ui | `shadcn` |
+| Implementar cualquier feature (tests primero) | `test-driven-development` |
+| Depurar comportamiento inesperado en UI | `systematic-debugging` |
+| Elegir entre enfoques de estado o arquitectura | `brainstorming` |
+| Revision de calidad React post-cambio | `react-doctor` |
+
+### React doctor — obligatorio post-cambio frontend
+
+Despues de cada cambio dentro de `frontend/`, correr:
+
+```bash
+npx -y react-doctor@latest . --verbose --diff
+```
+
+Resolver todas las advertencias antes de commitear. Si queda alguna abierta, documentarla.
+
+---
+
+## Mantenimiento de CLAUDE.md de subcarpetas
+
+Al terminar cada paso del spec, revisar si `backend/CLAUDE.md` o `frontend/CLAUDE.md` necesita actualizacion:
+
+- Nueva convencion establecida durante el paso → agregarla
+- Nuevo patron de nombrado o estructura descubierta → agregarla
+- Gotcha o restriccion tecnica encontrada → agregarla
+- Regla que ya no aplica → removerla
+
+No actualizar mecanicamente — solo cuando hay informacion nueva que un agente futuro necesitaria saber y que no esta ya en el spec ni en el CLAUDE.md existente.
+
+---
+
 ## Spec autoritativo — LEER ANTES DE CUALQUIER TAREA
 
 El spec completo del proyecto esta en:

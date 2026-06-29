@@ -31,6 +31,6 @@ public class UsuarioConfiguration : IEntityTypeConfiguration<Usuario>
             .IsUnique()
             .HasDatabaseName("uq_usuario_email");
 
-        builder.HasCheckConstraint("chk_usuario_rol", "rol IN ('Admin', 'Visor')");
+        builder.HasCheckConstraint("chk_usuario_rol", "\"Rol\" IN ('Admin', 'Visor')");
     }
 }

@@ -163,7 +163,7 @@ public class AuthControllerTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task EndpointProtegido_SinToken_Retorna401()
+    public async Task Logout_ConMetodoGet_Retorna405()
     {
         var response = await _client.GetAsync("/api/v1/auth/logout");
 
