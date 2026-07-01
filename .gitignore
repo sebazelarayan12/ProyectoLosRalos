@@ -29,3 +29,6 @@ dist/
 
 # Docker uploads
 uploads/
+
+# Legajos de prueba (datos sensibles)
+*.pdf
