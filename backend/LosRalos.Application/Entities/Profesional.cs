@@ -28,4 +28,6 @@ public class Profesional
     public bool Activo { get; set; } = true;
     public DateTime FechaCreacion { get; set; }
     public DateTime FechaActualizacion { get; set; }
+
+    public ICollection<Documento> Documentos { get; set; } = new List<Documento>();
 }

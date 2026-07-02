@@ -248,6 +248,39 @@ Cuando los tests usan `UseEnvironment("Testing")`, ASP.NET no carga `appsettings
 
 SIEMPRE crear `appsettings.Testing.json` con los mismos secretos que inyectan los tests via `ConfigureAppConfiguration`. Los valores deben coincidir exactamente.
 
+### File storage — validacion y path seguro (Paso 4)
+
+`FileStorageService` (Infrastructure/Services) nunca confia en el Content-Type declarado por el
+cliente ni en la extension del nombre de archivo. Detecta el tipo real leyendo los primeros bytes
+(magic bytes) contra un allowlist fijo (jpeg/png/pdf) — cualquier otro tipo se rechaza con
+`AppValidationException` (400), sin importar que extension traiga el archivo.
+
+`LimitedStream` (Infrastructure/Services) envuelve el stream de entrada y lanza `IOException` al
+superar `MaxFileSizeBytes` — se atrapa en el service y se traduce a `AppValidationException`.
+Nunca confiar solo en `Content-Length` del request.
+
+El nombre fisico del archivo SIEMPRE se genera con `Guid.NewGuid()` + la extension del tipo
+detectado (no la del nombre original). `NombreOriginal` se guarda sanitizado (solo se filtran
+caracteres de control con `char.IsControl`, se trunca a 255) unicamente como metadata para mostrar
+en UI — nunca se usa para construir el path fisico.
+
+Antes de leer o borrar un archivo, `ResolverPathSeguro` verifica con `Path.GetFullPath` que el path
+resuelto arranca con el `BasePath` configurado — bloquea path traversal aunque el path se construya
+siempre internamente (defensa en profundidad).
+
+`IFormFile` requiere que el controller este en un proyecto Web SDK (`LosRalos.Api` ya lo es) — no
+agregar dependencia de ASP.NET Core a `LosRalos.Infrastructure`, que sigue siendo SDK normal sin
+`Microsoft.NET.Sdk.Web`. El controller extrae `Stream` + `FileName` del `IFormFile` y se los pasa al
+service como tipos primitivos.
+
+### TipoDocumento — catalogo dinamico get-or-create (Paso 4)
+
+`TipoDocumentoRepository.GetOrCreateAsync` compara con `.ToLower() == nombre.ToLower()` (traduce a
+`lower()` en Postgres, usa el indice `idx_tipo_documento_nombre_lower`). No hay manejo de race
+condition en creacion concurrente del mismo nombre — el indice UNIQUE en DB previene el duplicado
+pero una insercion concurrente lanzaria `DbUpdateException` sin capturar. Aceptable para MVP
+(100-500 usuarios, subida de documentos no es una operacion de alta concurrencia sobre el mismo tipo).
+
 ### AuditLog — DetalleExtra en edicion
 
 `DetalleExtra` para `EditarProfesional` = nombres de campos cambiados separados por coma, SIN valores (privacidad). `ApplyPatch` retorna `List<string>` de nombres. No incluir campos que no cambiaron.

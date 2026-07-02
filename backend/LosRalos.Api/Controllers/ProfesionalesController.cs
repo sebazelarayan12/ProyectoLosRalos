@@ -10,7 +10,7 @@ namespace LosRalos.Api.Controllers;
 [ApiController]
 [Route("api/v1/profesionales")]
 [Authorize]
-public class ProfesionalesController(IProfesionalService service) : ControllerBase
+public class ProfesionalesController(IProfesionalService service, IDocumentoService documentoService) : ControllerBase
 {
     [HttpGet]
     [Authorize(Roles = "Admin,Visor")]
@@ -90,5 +90,27 @@ public class ProfesionalesController(IProfesionalService service) : ControllerBa
         await service.DeactivateAsync(id, usuarioId, nombre, ip, ct)
             .ConfigureAwait(false);
         return NoContent();
+    }
+
+    [HttpPost("{id:guid}/documentos")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(201)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(404)]
+    [RequestSizeLimit(11 * 1024 * 1024)]
+    public async Task<IActionResult> SubirDocumento(
+        Guid id, IFormFile archivo, [FromForm] string tipoDocumentoNombre, CancellationToken ct)
+    {
+        var usuarioId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var nombre = User.FindFirstValue("nombre") ?? string.Empty;
+        var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
+
+        await using var stream = archivo.OpenReadStream();
+        var result = await documentoService.SubirAsync(
+            id, stream, archivo.FileName, tipoDocumentoNombre, usuarioId, nombre, ip, ct)
+            .ConfigureAwait(false);
+
+        return CreatedAtAction(
+            nameof(DocumentosController.GetFile), "Documentos", new { id = result.Id }, result);
     }
 }

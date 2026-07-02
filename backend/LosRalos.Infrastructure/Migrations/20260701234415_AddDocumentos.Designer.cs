@@ -3,6 +3,7 @@ using System;
 using LosRalos.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace LosRalos.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260701234415_AddDocumentos")]
+    partial class AddDocumentos
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -346,18 +349,6 @@ namespace LosRalos.Infrastructure.Migrations
 
             modelBuilder.Entity("LosRalos.Application.Entities.Documento", b =>
                 {
-                    b.HasOne("LosRalos.Application.Entities.Usuario", null)
-                        .WithMany()
-                        .HasForeignKey("CargadoPorId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("LosRalos.Application.Entities.Profesional", null)
-                        .WithMany("Documentos")
-                        .HasForeignKey("ProfesionalId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("LosRalos.Application.Entities.TipoDocumento", "TipoDocumento")
                         .WithMany()
                         .HasForeignKey("TipoDocumentoId")
@@ -365,11 +356,6 @@ namespace LosRalos.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("TipoDocumento");
-                });
-
-            modelBuilder.Entity("LosRalos.Application.Entities.Profesional", b =>
-                {
-                    b.Navigation("Documentos");
                 });
 #pragma warning restore 612, 618
         }

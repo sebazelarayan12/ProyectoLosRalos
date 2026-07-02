@@ -21,6 +21,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Settings
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
 builder.Services.Configure<AuditSettings>(builder.Configuration.GetSection("Audit"));
+builder.Services.Configure<StorageSettings>(builder.Configuration.GetSection("Storage"));
 
 // DB
 builder.Services.AddSingleton<TimestampInterceptor>();
@@ -95,6 +96,10 @@ builder.Services.AddSingleton<IPasswordHasher, BcryptPasswordHasher>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IProfesionalRepository, ProfesionalRepository>();
 builder.Services.AddScoped<IProfesionalService, ProfesionalService>();
+builder.Services.AddScoped<IDocumentoRepository, DocumentoRepository>();
+builder.Services.AddScoped<ITipoDocumentoRepository, TipoDocumentoRepository>();
+builder.Services.AddScoped<IDocumentoService, DocumentoService>();
+builder.Services.AddSingleton<IFileStorageService, FileStorageService>();
 
 // Controllers + Swagger
 builder.Services.AddControllers()
