@@ -123,4 +123,53 @@ describe('BusquedaProfesionalesPage', () => {
 
     expect(await screen.findByText('Pantalla Perfil')).toBeInTheDocument()
   })
+
+  test('elegir un filtro de tipo lo manda como param y resetea la paginacion', async () => {
+    setUsuario('Visor')
+    vi.mocked(api.get).mockResolvedValue({ data: respuestaConResultados })
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByText('Perez, Ana')
+
+    await user.click(screen.getByRole('button', { name: /^filtros$/i }))
+    await user.click(screen.getByRole('combobox', { name: /tipo de legajo/i }))
+    await user.click(await screen.findByRole('option', { name: /asistencial/i }))
+
+    await waitFor(() => {
+      expect(api.get).toHaveBeenCalledWith(
+        '/profesionales',
+        expect.objectContaining({
+          params: expect.objectContaining({ tipo: 'Asistencial', cursor: undefined }),
+        }),
+      )
+    })
+  })
+
+  test('Siguiente pide la proxima pagina con el cursor devuelto', async () => {
+    setUsuario('Visor')
+    vi.mocked(api.get).mockResolvedValue({
+      data: { ...respuestaConResultados, hasNextPage: true, cursor: 'cursor-pagina-2' },
+    })
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByText('Perez, Ana')
+
+    await user.click(screen.getByRole('button', { name: /siguiente/i }))
+
+    await waitFor(() => {
+      expect(api.get).toHaveBeenCalledWith(
+        '/profesionales',
+        expect.objectContaining({ params: expect.objectContaining({ cursor: 'cursor-pagina-2' }) }),
+      )
+    })
+  })
+
+  test('Anterior esta deshabilitado en la primera pagina', async () => {
+    setUsuario('Visor')
+    vi.mocked(api.get).mockResolvedValue({ data: respuestaConResultados })
+    renderPage()
+    await screen.findByText('Perez, Ana')
+
+    expect(screen.getByRole('button', { name: /anterior/i })).toBeDisabled()
+  })
 })
