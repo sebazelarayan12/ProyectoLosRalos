@@ -173,6 +173,18 @@ Esto incluye: codigo fuente, `appsettings.json`, `docker-compose.yml`, comentari
 
 El archivo `.env` nunca se commitea. `.env.example` si — sin valores reales.
 
+## REGLA IRROMPIBLE — Nada hardcodeado, ni siquiera datos de seed
+
+Ademas de secretos, NUNCA hardcodear en codigo fuente:
+- Credenciales de usuarios de prueba/seed (admin, visor, etc.)
+- Datos de ejemplo que despues se usan para login real
+- Cualquier email, password, o dato de negocio fijo que el usuario final vaya a necesitar cambiar
+
+Si se necesita un usuario inicial (ej: primer admin), la logica de seed debe leer los valores desde
+variables de entorno (mismo mecanismo que un secreto — ver regla anterior) y no crear nada si esas
+variables no estan seteadas. La contrasenia jamas se guarda en texto plano — siempre pasa por el
+mismo `IPasswordHasher` que usa el resto del sistema.
+
 ## Seguridad — decisiones
 
 - **Archivos:** NUNCA servir como estatico. Todo pasa por `GET /documentos/{id}/file` con JWT validado.

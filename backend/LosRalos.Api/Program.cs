@@ -2,6 +2,8 @@ using System.Text;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
 using LosRalos.Api.Middleware;
+using LosRalos.Application.Entities;
+using LosRalos.Application.Entities.Enums;
 using LosRalos.Application.Interfaces;
 using LosRalos.Application.Services;
 using LosRalos.Application.Settings;
@@ -47,6 +49,20 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddAuthorization();
+
+// CORS
+var corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? [];
+
+builder.Services.AddCors(opts =>
+{
+    opts.AddPolicy("Frontend", policy =>
+    {
+        policy.WithOrigins(corsOrigins)
+            .AllowAnyMethod()
+            .AllowAnyHeader();
+    });
+});
 
 // Rate limiting
 builder.Services.Configure<ForwardedHeadersOptions>(opts =>
@@ -130,6 +146,35 @@ using (var scope = app.Services.CreateScope())
     db.Database.Migrate();
 }
 
+// Seed admin inicial (opcional, via env vars — nunca hardcodeado)
+var seedAdminEmail = builder.Configuration["SEED_ADMIN_EMAIL"];
+if (!string.IsNullOrWhiteSpace(seedAdminEmail))
+{
+    using var seedScope = app.Services.CreateScope();
+    var db = seedScope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    var yaExiste = await db.Usuarios.AnyAsync(u => u.Email == seedAdminEmail);
+    if (!yaExiste)
+    {
+        var seedAdminPassword = builder.Configuration["SEED_ADMIN_PASSWORD"]
+            ?? throw new InvalidOperationException("SEED_ADMIN_PASSWORD no configurado.");
+        var seedAdminNombre = builder.Configuration["SEED_ADMIN_NOMBRE"] ?? "Administrador";
+        var hasher = seedScope.ServiceProvider.GetRequiredService<IPasswordHasher>();
+
+        db.Usuarios.Add(new Usuario
+        {
+            Id = Guid.NewGuid(),
+            Nombre = seedAdminNombre,
+            Email = seedAdminEmail,
+            PasswordHash = hasher.Hash(seedAdminPassword),
+            Rol = RolUsuario.Admin,
+            Activo = true
+        });
+
+        await db.SaveChangesAsync();
+    }
+}
+
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
 if (app.Environment.IsDevelopment())
@@ -139,6 +184,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseForwardedHeaders();
+app.UseCors("Frontend");
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseMiddleware<ActiveUserMiddleware>();

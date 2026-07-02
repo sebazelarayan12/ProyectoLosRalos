@@ -10,6 +10,7 @@ docs/
 
 # Env
 .env
+.env.local
 !.env.example
 
 # EF Core
