@@ -1,13 +1,11 @@
 import { createApiClient } from './client'
-
-const TOKEN_KEY = 'auth_token'
-const USUARIO_KEY = 'auth_usuario'
+import { AUTH_TOKEN_KEY, AUTH_USUARIO_KEY } from '@/lib/authStorage'
 
 export const api = createApiClient({
-  getToken: () => localStorage.getItem(TOKEN_KEY),
+  getToken: () => localStorage.getItem(AUTH_TOKEN_KEY),
   onUnauthorized: () => {
-    localStorage.removeItem(TOKEN_KEY)
-    localStorage.removeItem(USUARIO_KEY)
+    localStorage.removeItem(AUTH_TOKEN_KEY)
+    localStorage.removeItem(AUTH_USUARIO_KEY)
     if (window.location.pathname !== '/login') {
       window.location.href = '/login'
     }

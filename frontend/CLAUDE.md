@@ -26,11 +26,48 @@ con el mismo patron (`api/`, `components/`, `hooks/`, `pages/` segun necesite). 
 carpetas tecnicas top-level (`contexts/`, `pages/` sueltas en `src/`) — eso vuelve a layered
 architecture.
 
+## Reutilizacion de componentes — obligatorio
+
+**Regla irrompible: nunca duplicar codigo.** Antes de escribir un componente, hook o helper nuevo,
+buscar si ya existe algo reutilizable (`src/components/`, `src/hooks/`, `lib/`). Si dos o mas
+lugares necesitan la misma logica/markup, extraerla — no copiar y pegar con variaciones.
+
+Arbol de decision — donde va un componente nuevo:
+
+```
+Se usa en una sola feature?
+  -> features/<nombre>/components/
+
+Se usa en 2+ features o pantallas, y es generico (compuesto con components/ui/)?
+  -> src/components/ (ej: SelectField.tsx)
+
+Es un primitivo shadcn sin logica propia?
+  -> components/ui/ (via `npx shadcn add`, nunca a mano)
+```
+
+Arbol de decision — donde va un hook nuevo:
+
+```
+Logica de fetching/estado atada a una sola feature?
+  -> features/<nombre>/hooks/
+
+Utilidad generica reutilizable entre features (ej: useDebounce)?
+  -> src/hooks/
+```
+
+Antes de dar un paso por completado, revisar si quedo JSX o logica casi identica repetida en 2+
+archivos (mismo Field+Select, mismo bloque de validacion, mismas keys de localStorage) y extraerla
+en ese momento — no dejarlo para "despues". Ejemplos ya resueltos en este proyecto:
+- `SelectField` (`src/components/SelectField.tsx`) — Field + Select + opciones, usado por
+  `FiltrosProfesionales` (Tipo y Planta). Reusar aca antes de escribir otro Select con label.
+- `AUTH_TOKEN_KEY` / `AUTH_USUARIO_KEY` (`src/lib/authStorage.ts`) — unica fuente de verdad para
+  las claves de `localStorage` de sesion, usada por `AuthContext` y `lib/api/index.ts`.
+
 ## Auth
 
-- Token + usuario en `localStorage` bajo las claves `auth_token` / `auth_usuario` — usadas tanto en
-  `features/auth/context/AuthContext.tsx` como en `lib/api/index.ts`. Si se cambia una, cambiar la
-  otra (no estan centralizadas en una constante compartida todavia).
+- Claves de `localStorage` centralizadas en `lib/authStorage.ts` (`AUTH_TOKEN_KEY`,
+  `AUTH_USUARIO_KEY`) — usadas por `features/auth/context/AuthContext.tsx` y `lib/api/index.ts`.
+  Nunca declarar estas claves como string literal en otro lado.
 - `lib/api/client.ts` expone `createApiClient({ getToken, onUnauthorized })` — interceptor de request
   agrega `Authorization: Bearer`, interceptor de response dispara `onUnauthorized` en 401.
 - `onUnauthorized` (en `lib/api/index.ts`) limpia localStorage y fuerza `window.location.href = '/login'`
