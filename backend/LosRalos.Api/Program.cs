@@ -119,6 +119,10 @@ builder.Services.AddSingleton<IFileStorageService, FileStorageService>();
 
 // Controllers + Swagger
 builder.Services.AddControllers()
+    .AddJsonOptions(opts =>
+    {
+        opts.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+    })
     .ConfigureApiBehaviorOptions(opts =>
     {
         opts.InvalidModelStateResponseFactory = ctx =>

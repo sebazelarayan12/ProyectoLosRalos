@@ -1,12 +1,22 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import type { ReactNode } from 'react'
 import { VisorDocumentoModal } from './VisorDocumentoModal'
 import { useArchivoDocumento } from '../hooks/useArchivoDocumento'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
+import { eliminarDocumento } from '../api/eliminarDocumento'
 import type { DocumentoResumen } from '../api/obtenerProfesional'
 
 vi.mock('../hooks/useArchivoDocumento')
 vi.mock('@/hooks/useMediaQuery')
+vi.mock('../api/eliminarDocumento')
+
+function wrapper({ children }: { children: ReactNode }) {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+}
 
 const documentoImagen: DocumentoResumen = {
   id: 'doc-1',
@@ -40,7 +50,7 @@ describe('VisorDocumentoModal', () => {
   test('no renderiza nada si documento es null', () => {
     vi.mocked(useArchivoDocumento).mockReturnValue({ data: undefined, isLoading: false, isError: false } as never)
 
-    render(<VisorDocumentoModal documento={null} open={false} onOpenChange={vi.fn()} />)
+    render(<VisorDocumentoModal documento={null} open={false} onOpenChange={vi.fn()} />, { wrapper })
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
@@ -48,7 +58,7 @@ describe('VisorDocumentoModal', () => {
   test('muestra estado de carga mientras isLoading', () => {
     vi.mocked(useArchivoDocumento).mockReturnValue({ data: undefined, isLoading: true, isError: false } as never)
 
-    render(<VisorDocumentoModal documento={documentoImagen} open={true} onOpenChange={vi.fn()} />)
+    render(<VisorDocumentoModal documento={documentoImagen} open={true} onOpenChange={vi.fn()} />, { wrapper })
 
     expect(screen.getByText(/cargando/i)).toBeInTheDocument()
   })
@@ -56,7 +66,7 @@ describe('VisorDocumentoModal', () => {
   test('muestra mensaje de error si isError', () => {
     vi.mocked(useArchivoDocumento).mockReturnValue({ data: undefined, isLoading: false, isError: true } as never)
 
-    render(<VisorDocumentoModal documento={documentoImagen} open={true} onOpenChange={vi.fn()} />)
+    render(<VisorDocumentoModal documento={documentoImagen} open={true} onOpenChange={vi.fn()} />, { wrapper })
 
     expect(screen.getByText(/no se pudo cargar/i)).toBeInTheDocument()
   })
@@ -65,7 +75,7 @@ describe('VisorDocumentoModal', () => {
     const blob = new Blob(['x'], { type: 'image/jpeg' })
     vi.mocked(useArchivoDocumento).mockReturnValue({ data: blob, isLoading: false, isError: false } as never)
 
-    render(<VisorDocumentoModal documento={documentoImagen} open={true} onOpenChange={vi.fn()} />)
+    render(<VisorDocumentoModal documento={documentoImagen} open={true} onOpenChange={vi.fn()} />, { wrapper })
 
     expect(screen.getByRole('img')).toHaveAttribute('src', 'blob:mock-url')
   })
@@ -75,7 +85,7 @@ describe('VisorDocumentoModal', () => {
     vi.mocked(useArchivoDocumento).mockReturnValue({ data: blob, isLoading: false, isError: false } as never)
     vi.mocked(useMediaQuery).mockReturnValue(false)
 
-    render(<VisorDocumentoModal documento={documentoPdf} open={true} onOpenChange={vi.fn()} />)
+    render(<VisorDocumentoModal documento={documentoPdf} open={true} onOpenChange={vi.fn()} />, { wrapper })
 
     expect(screen.getByTitle('Documento')).toHaveAttribute('src', 'blob:mock-url')
   })
@@ -85,7 +95,7 @@ describe('VisorDocumentoModal', () => {
     vi.mocked(useArchivoDocumento).mockReturnValue({ data: blob, isLoading: false, isError: false } as never)
     vi.mocked(useMediaQuery).mockReturnValue(true)
 
-    render(<VisorDocumentoModal documento={documentoPdf} open={true} onOpenChange={vi.fn()} />)
+    render(<VisorDocumentoModal documento={documentoPdf} open={true} onOpenChange={vi.fn()} />, { wrapper })
 
     expect(screen.queryByTitle('Documento')).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: /abrir pdf/i })).toHaveAttribute('href', 'blob:mock-url')
@@ -95,10 +105,47 @@ describe('VisorDocumentoModal', () => {
     const blob = new Blob(['x'], { type: 'image/jpeg' })
     vi.mocked(useArchivoDocumento).mockReturnValue({ data: blob, isLoading: false, isError: false } as never)
 
-    render(<VisorDocumentoModal documento={documentoImagen} open={true} onOpenChange={vi.fn()} />)
+    render(<VisorDocumentoModal documento={documentoImagen} open={true} onOpenChange={vi.fn()} />, { wrapper })
 
     const link = screen.getByRole('link', { name: /descargar/i })
     expect(link).toHaveAttribute('href', 'blob:mock-url')
     expect(link).toHaveAttribute('download', 'dni.jpg')
+  })
+
+  test('no muestra boton Eliminar si esAdmin es false', () => {
+    const blob = new Blob(['x'], { type: 'image/jpeg' })
+    vi.mocked(useArchivoDocumento).mockReturnValue({ data: blob, isLoading: false, isError: false } as never)
+
+    render(
+      <VisorDocumentoModal documento={documentoImagen} open={true} onOpenChange={vi.fn()} esAdmin={false} />,
+      { wrapper },
+    )
+
+    expect(screen.queryByRole('button', { name: /eliminar/i })).not.toBeInTheDocument()
+  })
+
+  test('confirmar Eliminar llama a eliminarDocumento y a onEliminado', async () => {
+    const blob = new Blob(['x'], { type: 'image/jpeg' })
+    vi.mocked(useArchivoDocumento).mockReturnValue({ data: blob, isLoading: false, isError: false } as never)
+    vi.mocked(eliminarDocumento).mockResolvedValue(undefined)
+    const onEliminado = vi.fn()
+    const user = userEvent.setup()
+
+    render(
+      <VisorDocumentoModal
+        documento={documentoImagen}
+        open={true}
+        onOpenChange={vi.fn()}
+        esAdmin={true}
+        onEliminado={onEliminado}
+      />,
+      { wrapper },
+    )
+
+    await user.click(screen.getByRole('button', { name: /eliminar/i }))
+    await user.click(await screen.findByRole('button', { name: /confirmar/i }))
+
+    await waitFor(() => expect(eliminarDocumento).toHaveBeenCalledWith(expect.anything(), 'doc-1'))
+    expect(onEliminado).toHaveBeenCalled()
   })
 })

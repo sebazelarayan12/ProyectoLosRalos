@@ -205,6 +205,34 @@ public class ProfesionalesControllerTests : IAsyncLifetime
         resp.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
+    [Fact]
+    public async Task Create_EnumsComoStringEnElBody_Retorna201()
+    {
+        var payload = new
+        {
+            apellido = "Enums",
+            nombre = "String Test",
+            dni = "10.101.010",
+            cuil = "20-10101010-0",
+            fechaNacimiento = "1990-01-01",
+            sexo = "Femenino",
+            estadoCivil = "Soltero",
+            domicilio = "Calle Enum 1",
+            localidad = "San Miguel de Tucuman",
+            provincia = "Tucuman",
+            funcion = "Medica",
+            nivel = "Universitario",
+            planta = "PermanenteEfectivo",
+            tipo = "Asistencial"
+        };
+
+        var resp = await _adminClient.PostAsJsonAsync("/api/v1/profesionales", payload);
+
+        resp.StatusCode.Should().Be(HttpStatusCode.Created);
+        var body = await resp.Content.ReadFromJsonAsync<ProfesionalDetalleResponse>();
+        body!.Sexo.Should().Be("Femenino");
+    }
+
     // --- GET /api/v1/profesionales/{id} ---
 
     [Fact]

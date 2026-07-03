@@ -1,4 +1,4 @@
-import { Field, FieldLabel } from '@/components/ui/field'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import {
   Select,
   SelectContent,
@@ -20,6 +20,7 @@ type SelectFieldProps = {
   value: string | undefined
   onValueChange: (value: string) => void
   options: SelectFieldOption[]
+  error?: string
 }
 
 export function SelectField({
@@ -29,12 +30,13 @@ export function SelectField({
   value,
   onValueChange,
   options,
+  error,
 }: SelectFieldProps) {
   return (
-    <Field>
+    <Field data-invalid={!!error}>
       <FieldLabel htmlFor={id}>{label}</FieldLabel>
       <Select value={value} onValueChange={onValueChange}>
-        <SelectTrigger id={id} aria-label={label}>
+        <SelectTrigger id={id} aria-label={label} aria-invalid={!!error}>
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
@@ -47,6 +49,7 @@ export function SelectField({
           </SelectGroup>
         </SelectContent>
       </Select>
+      {error && <FieldError>{error}</FieldError>}
     </Field>
   )
 }

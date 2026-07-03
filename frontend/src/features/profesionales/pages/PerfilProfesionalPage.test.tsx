@@ -1,5 +1,6 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from '@/features/auth/context/AuthContext'
@@ -7,7 +8,7 @@ import { PerfilProfesionalPage } from './PerfilProfesionalPage'
 import { api } from '@/lib/api'
 
 vi.mock('@/lib/api', () => ({
-  api: { get: vi.fn() },
+  api: { get: vi.fn(), post: vi.fn(), delete: vi.fn() },
 }))
 
 const profesionalDetalle = {
@@ -60,6 +61,7 @@ function renderPage() {
         <MemoryRouter initialEntries={['/profesionales/11111111-1111-1111-1111-111111111111']}>
           <Routes>
             <Route path="/profesionales/:id" element={<PerfilProfesionalPage />} />
+            <Route path="/profesionales/:id/editar" element={<div>Pantalla Editar</div>} />
           </Routes>
         </MemoryRouter>
       </AuthProvider>
@@ -93,6 +95,17 @@ describe('PerfilProfesionalPage', () => {
     expect(await screen.findByRole('button', { name: /editar/i })).toBeInTheDocument()
   })
 
+  test('click en Editar navega a la pantalla de edicion', async () => {
+    setUsuario('Admin')
+    vi.mocked(api.get).mockResolvedValue({ data: profesionalDetalle })
+    const user = userEvent.setup()
+    renderPage()
+
+    await user.click(await screen.findByRole('button', { name: /editar/i }))
+
+    expect(await screen.findByText('Pantalla Editar')).toBeInTheDocument()
+  })
+
   test('boton Editar no aparece para visor', async () => {
     setUsuario('Visor')
     vi.mocked(api.get).mockResolvedValue({ data: profesionalDetalle })
@@ -101,6 +114,41 @@ describe('PerfilProfesionalPage', () => {
 
     await screen.findByText('Perez, Sara Gisela')
     expect(screen.queryByRole('button', { name: /editar/i })).not.toBeInTheDocument()
+  })
+
+  test('zona de subir documento visible solo para admin', async () => {
+    setUsuario('Admin')
+    vi.mocked(api.get).mockResolvedValue({ data: profesionalDetalle })
+
+    renderPage()
+
+    expect(await screen.findByLabelText(/tipo de documento/i)).toBeInTheDocument()
+  })
+
+  test('zona de subir documento no aparece para visor', async () => {
+    setUsuario('Visor')
+    vi.mocked(api.get).mockResolvedValue({ data: profesionalDetalle })
+
+    renderPage()
+
+    await screen.findByText('Perez, Sara Gisela')
+    expect(screen.queryByLabelText(/tipo de documento/i)).not.toBeInTheDocument()
+  })
+
+  test('boton Eliminar del visor de documentos aparece solo para admin', async () => {
+    setUsuario('Admin')
+    vi.mocked(api.get).mockImplementation((url: string) => {
+      if (url.includes('/file')) {
+        return Promise.resolve({ data: new Blob(['x'], { type: 'image/jpeg' }) })
+      }
+      return Promise.resolve({ data: profesionalDetalle })
+    })
+    const user = userEvent.setup()
+    renderPage()
+
+    await user.click(await screen.findByRole('button', { name: /DNI/i }))
+
+    expect(await screen.findByRole('button', { name: /eliminar/i })).toBeInTheDocument()
   })
 
   test('muestra mensaje de no encontrado en 404', async () => {

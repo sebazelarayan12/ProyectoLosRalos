@@ -4,6 +4,8 @@ import { LoginPage } from '@/features/auth/pages/LoginPage'
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage'
 import { BusquedaProfesionalesPage } from '@/features/profesionales/pages/BusquedaProfesionalesPage'
 import { PerfilProfesionalPage } from '@/features/profesionales/pages/PerfilProfesionalPage'
+import { CrearProfesionalPage } from '@/features/profesionales/pages/CrearProfesionalPage'
+import { EditarProfesionalPage } from '@/features/profesionales/pages/EditarProfesionalPage'
 
 export function AppRouter() {
   return (
@@ -12,7 +14,9 @@ export function AppRouter() {
       <Route element={<PrivateRoute />}>
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/profesionales" element={<BusquedaProfesionalesPage />} />
+        <Route path="/profesionales/nuevo" element={<CrearProfesionalPage />} />
         <Route path="/profesionales/:id" element={<PerfilProfesionalPage />} />
+        <Route path="/profesionales/:id/editar" element={<EditarProfesionalPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

@@ -44,4 +44,20 @@ describe('SelectField', () => {
 
     expect(onValueChange).toHaveBeenCalledWith('b')
   })
+
+  test('muestra el mensaje de error cuando se pasa la prop error', () => {
+    render(
+      <SelectField
+        id="campo"
+        label="Mi campo"
+        placeholder="Elegir"
+        value={undefined}
+        onValueChange={vi.fn()}
+        options={opciones}
+        error="Campo requerido"
+      />,
+    )
+
+    expect(screen.getByText('Campo requerido')).toBeInTheDocument()
+  })
 })

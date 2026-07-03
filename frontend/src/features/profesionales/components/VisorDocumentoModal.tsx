@@ -1,21 +1,55 @@
 import { useEffect, useState } from 'react'
+import { useMutation } from '@tanstack/react-query'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
+import { api } from '@/lib/api'
 import { useArchivoDocumento } from '../hooks/useArchivoDocumento'
+import { eliminarDocumento } from '../api/eliminarDocumento'
 import type { DocumentoResumen } from '../api/obtenerProfesional'
 
 type VisorDocumentoModalProps = {
   documento: DocumentoResumen | null
   open: boolean
   onOpenChange: (open: boolean) => void
+  esAdmin?: boolean
+  onEliminado?: () => void
 }
 
-export function VisorDocumentoModal({ documento, open, onOpenChange }: VisorDocumentoModalProps) {
+export function VisorDocumentoModal({
+  documento,
+  open,
+  onOpenChange,
+  esAdmin = false,
+  onEliminado,
+}: VisorDocumentoModalProps) {
   const isMobile = useMediaQuery('(max-width: 768px)')
   const { data: blob, isLoading, isError } = useArchivoDocumento(documento?.id, open)
   const [url, setUrl] = useState<string | null>(null)
 
+  // Invalidacion de cache delegada al caller via onEliminado — este modal no conoce
+  // la query key ['profesional', id] del perfil, solo notifica que se elimino.
+  const eliminarMutation = useMutation({
+    mutationFn: (id: string) => eliminarDocumento(api, id),
+    onSuccess: () => {
+      onEliminado?.()
+      onOpenChange(false)
+    },
+  })
+
+  // Efecto requerido (no "ajuste de estado"): URL.createObjectURL crea un recurso del
+  // browser que debe revocarse explicitamente en el cleanup cuando cambia el blob.
   useEffect(() => {
     if (!blob) {
       setUrl(null)
@@ -55,6 +89,27 @@ export function VisorDocumentoModal({ documento, open, onOpenChange }: VisorDocu
         ) : null}
 
         <DialogFooter>
+          {esAdmin ? (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline">Eliminar</Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Eliminar documento</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Esta accion no se puede deshacer. El archivo se eliminara del legajo.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => eliminarMutation.mutate(documento.id)}>
+                    Confirmar
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          ) : null}
           {url ? (
             <Button asChild>
               <a href={url} download={documento.nombreOriginal}>

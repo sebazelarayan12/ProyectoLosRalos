@@ -89,6 +89,31 @@ en ese momento — no dejarlo para "despues". Ejemplos ya resueltos en este proy
 probablemente `Combobox`, `DropdownMenu`, etc. de Radix) falla en jsdom con errores de puntero. Ya
 esta resuelto a nivel global — no hay que repetirlo por test.
 
+## Iframe de PDF — sin atributo sandbox (Paso 8)
+
+`sandbox=""` en el iframe de `VisorDocumentoModal.tsx` (agregado por recomendacion de react-doctor)
+rompia el render de PDF en Chrome/Brave con "(blocked:other)" en Network, incluso probando
+`allow-scripts` y `allow-scripts allow-same-origin`. Root cause confirmado: el visor PDF nativo de
+Chromium (PDFium) rechaza cargar dentro de CUALQUIER iframe sandboxeado, sin importar los flags.
+Firefox (PDF.js) no tiene esa restriccion — por eso andaba ahi pero no en Chrome/Brave. Fix final:
+sacar el atributo `sandbox` por completo. El contenido es un blob generado por nosotros desde un
+archivo ya validado en backend (MIME + magic bytes), no HTML arbitrario de tercero, asi que el
+sandbox no sumaba proteccion real. Si react-doctor vuelve a marcarlo, es falso positivo — dejar
+documentado aca.
+
+## React doctor — advertencias aceptadas (Paso 8)
+
+- `VisorDocumentoModal.tsx` — "Mutation without cache invalidation" en `eliminarMutation`: falso
+  positivo. La invalidacion de `['profesional', id]` se delega al caller via el callback
+  `onEliminado` (el modal no conoce esa query key, es responsabilidad de `PerfilProfesionalPage`).
+- `VisorDocumentoModal.tsx` — "State synced to a prop inside an effect" en el `useEffect` que arma
+  el blob URL: falso positivo. No es un ajuste de estado derivado de un prop — `URL.createObjectURL`
+  crea un recurso del browser que exige `revokeObjectURL` en el cleanup al cambiar `blob`. Es el caso
+  de "Synchronizing with an Effect" documentado por React, no el anti-patron de "adjusting state".
+- `VisorDocumentoModal.tsx` — "iframe missing sandbox attribute": falso positivo, ver seccion
+  "Iframe de PDF — sin atributo sandbox" arriba. Sandbox rompe el render nativo de PDF en
+  Chromium. No agregar sandbox de vuelta aunque react-doctor lo siga marcando.
+
 ## Paginacion cursor-based en UI (Paso 6)
 
 `PaginationPrevious`/`PaginationNext` de shadcn son para links reales (`<a href>`) navegables por
