@@ -239,6 +239,45 @@ public class ProfesionalesControllerTests : IAsyncLifetime
         resp.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
+    [Fact]
+    public async Task GetById_ConDocumentoCargado_IncluyeDocumentoEnRespuesta()
+    {
+        var created = await _adminClient.PostAsJsonAsync("/api/v1/profesionales",
+            BuildRequest(apellido: "Mendez", dni: "99.111.222", cuil: "20-99111222-0"));
+        var detalle = await created.Content.ReadFromJsonAsync<ProfesionalDetalleResponse>();
+
+        var uploadContent = new MultipartFormDataContent();
+        uploadContent.Add(new ByteArrayContent([0xFF, 0xD8, 0xFF, 0x00, 0x01, 0x02, 0x03]), "archivo", "foto.jpg");
+        uploadContent.Add(new StringContent("DNI"), "tipoDocumentoNombre");
+        await _adminClient.PostAsync($"/api/v1/profesionales/{detalle!.Id}/documentos", uploadContent);
+
+        var resp = await _adminClient.GetAsync($"/api/v1/profesionales/{detalle.Id}");
+
+        var body = await resp.Content.ReadFromJsonAsync<ProfesionalDetalleResponse>();
+        body!.Documentos.Should().ContainSingle(d => d.TipoDocumento == "DNI" && d.NombreOriginal == "foto.jpg");
+    }
+
+    [Fact]
+    public async Task GetById_ConDocumentoEliminado_NoLoIncluyeEnRespuesta()
+    {
+        var created = await _adminClient.PostAsJsonAsync("/api/v1/profesionales",
+            BuildRequest(apellido: "Ibanez", dni: "99.222.333", cuil: "20-99222333-0"));
+        var detalle = await created.Content.ReadFromJsonAsync<ProfesionalDetalleResponse>();
+
+        var uploadContent = new MultipartFormDataContent();
+        uploadContent.Add(new ByteArrayContent([0xFF, 0xD8, 0xFF, 0x00, 0x01, 0x02, 0x03]), "archivo", "foto.jpg");
+        uploadContent.Add(new StringContent("DNI"), "tipoDocumentoNombre");
+        var uploadResp = await _adminClient.PostAsync($"/api/v1/profesionales/{detalle!.Id}/documentos", uploadContent);
+        var documento = await uploadResp.Content.ReadFromJsonAsync<JsonElement>();
+        var documentoId = documento.GetProperty("id").GetGuid();
+
+        await _adminClient.DeleteAsync($"/api/v1/documentos/{documentoId}");
+
+        var resp = await _adminClient.GetAsync($"/api/v1/profesionales/{detalle.Id}");
+        var body = await resp.Content.ReadFromJsonAsync<ProfesionalDetalleResponse>();
+        body!.Documentos.Should().BeEmpty();
+    }
+
     // --- PATCH /api/v1/profesionales/{id} ---
 
     [Fact]

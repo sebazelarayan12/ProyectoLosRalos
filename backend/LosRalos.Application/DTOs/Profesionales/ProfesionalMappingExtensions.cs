@@ -29,7 +29,16 @@ public static class ProfesionalMappingExtensions
         Tipo = p.Tipo.ToString(),
         Activo = p.Activo,
         FechaCreacion = p.FechaCreacion,
-        FechaActualizacion = p.FechaActualizacion
+        FechaActualizacion = p.FechaActualizacion,
+        Documentos = p.Documentos.Select(d => new DocumentoResumenResponse
+        {
+            Id = d.Id,
+            TipoDocumento = d.TipoDocumento?.Nombre ?? string.Empty,
+            NombreOriginal = d.NombreOriginal,
+            ContentType = d.ContentType,
+            TamanioBytes = d.TamanioBytes,
+            FechaCarga = d.FechaCarga
+        }).ToList()
     };
 
     public static ProfesionalResumenResponse ToResumenResponse(this Profesional p) => new()

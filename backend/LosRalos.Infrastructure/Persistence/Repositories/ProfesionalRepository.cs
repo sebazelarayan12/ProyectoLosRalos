@@ -72,6 +72,8 @@ public class ProfesionalRepository(AppDbContext db) : IProfesionalRepository
     public async Task<Profesional?> GetByIdAsync(Guid id, CancellationToken ct)
         => await db.Profesionales
             .AsNoTracking()
+            .Include(p => p.Documentos.Where(d => d.EliminadoEn == null))
+            .ThenInclude(d => d.TipoDocumento)
             .FirstOrDefaultAsync(p => p.Id == id, ct)
             .ConfigureAwait(false);
 
