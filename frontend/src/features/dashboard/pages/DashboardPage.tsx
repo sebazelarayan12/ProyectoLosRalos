@@ -15,6 +15,9 @@ export function DashboardPage() {
     <div className="flex min-h-svh flex-col items-center justify-center gap-4 p-4">
       <h1 className="text-xl font-semibold">Bienvenido, {usuario?.nombre}</h1>
       <Button onClick={() => navigate('/profesionales')}>Buscar profesionales</Button>
+      {usuario?.rol === 'Admin' ? (
+        <Button onClick={() => navigate('/usuarios')}>Gestion de usuarios</Button>
+      ) : null}
       <Button variant="outline" onClick={handleLogout}>Cerrar sesion</Button>
     </div>
   )

@@ -9,7 +9,7 @@ import { useDebounce } from '@/hooks/useDebounce'
 import { useProfesionales } from '../hooks/useProfesionales'
 import { TablaResultados } from '../components/TablaResultados'
 import { FiltrosProfesionales, type Filtros } from '../components/FiltrosProfesionales'
-import { PaginacionResultados } from '../components/PaginacionResultados'
+import { PaginacionResultados } from '@/components/PaginacionResultados'
 
 export function BusquedaProfesionalesPage() {
   const { usuario } = useAuth()

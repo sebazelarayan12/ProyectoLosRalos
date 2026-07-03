@@ -6,6 +6,8 @@ import { BusquedaProfesionalesPage } from '@/features/profesionales/pages/Busque
 import { PerfilProfesionalPage } from '@/features/profesionales/pages/PerfilProfesionalPage'
 import { CrearProfesionalPage } from '@/features/profesionales/pages/CrearProfesionalPage'
 import { EditarProfesionalPage } from '@/features/profesionales/pages/EditarProfesionalPage'
+import { GestionUsuariosPage } from '@/features/usuarios/pages/GestionUsuariosPage'
+import { CrearUsuarioPage } from '@/features/usuarios/pages/CrearUsuarioPage'
 
 export function AppRouter() {
   return (
@@ -17,6 +19,8 @@ export function AppRouter() {
         <Route path="/profesionales/nuevo" element={<CrearProfesionalPage />} />
         <Route path="/profesionales/:id" element={<PerfilProfesionalPage />} />
         <Route path="/profesionales/:id/editar" element={<EditarProfesionalPage />} />
+        <Route path="/usuarios" element={<GestionUsuariosPage />} />
+        <Route path="/usuarios/nuevo" element={<CrearUsuarioPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
