@@ -114,6 +114,15 @@ documentado aca.
   "Iframe de PDF — sin atributo sandbox" arriba. Sandbox rompe el render nativo de PDF en
   Chromium. No agregar sandbox de vuelta aunque react-doctor lo siga marcando.
 
+## React doctor — advertencias aceptadas (Paso 10)
+
+- `SubirDocumentoDropzone.tsx` — "Mutation without cache invalidation" en la mutacion de subida:
+  falso positivo, mismo patron que `VisorDocumentoModal` — la invalidacion de `['profesional', id]`
+  se delega al caller via el callback `onSubido` (el dropzone no conoce esa query key).
+- `ResetPasswordDialog.tsx` — "Mutation without cache invalidation": falso positivo. Resetear la
+  password no cambia ningun campo visible en la lista de usuarios (`nombre`/`email`/`rol`/`activo`),
+  no hay cache desactualizada que invalidar.
+
 ## Paginacion cursor-based en UI (Paso 6)
 
 `PaginationPrevious`/`PaginationNext` de shadcn son para links reales (`<a href>`) navegables por

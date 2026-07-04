@@ -65,6 +65,9 @@ export function EditarUsuarioDialog({ usuario, open, onOpenChange }: EditarUsuar
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Editar usuario</DialogTitle>
+          <p className="text-xs text-muted-foreground">
+            {usuario.nombre} - {usuario.email}
+          </p>
         </DialogHeader>
         <form onSubmit={handleSubmit((values) => mutation.mutate(values))} noValidate>
           <FieldGroup>

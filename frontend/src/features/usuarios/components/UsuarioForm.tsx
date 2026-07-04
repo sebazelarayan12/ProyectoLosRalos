@@ -50,8 +50,8 @@ export function UsuarioForm({ onSubmit }: UsuarioFormProps) {
   const valores = watch()
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-6">
-      <FieldGroup>
+    <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4">
+      <FieldGroup className="rounded-xl border bg-card p-4">
         <Field data-invalid={!!errors.nombre}>
           <FieldLabel htmlFor="nombre">Nombre</FieldLabel>
           <Input id="nombre" aria-invalid={!!errors.nombre} {...register('nombre')} />

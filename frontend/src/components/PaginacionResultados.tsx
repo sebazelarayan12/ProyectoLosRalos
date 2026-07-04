@@ -16,14 +16,17 @@ export function PaginacionResultados({
 }: PaginacionResultadosProps) {
   return (
     <Pagination>
-      <PaginationContent>
+      <PaginationContent className="w-full justify-between">
         <PaginationItem>
-          <Button variant="outline" disabled={!canGoPrev} onClick={onPrev}>
+          <Button variant="outline" size="sm" disabled={!canGoPrev} onClick={onPrev}>
             Anterior
           </Button>
         </PaginationItem>
         <PaginationItem>
-          <Button variant="outline" disabled={!canGoNext} onClick={onNext}>
+          <span className="text-xs text-muted-foreground">Navegacion por cursor</span>
+        </PaginationItem>
+        <PaginationItem>
+          <Button variant="outline" size="sm" disabled={!canGoNext} onClick={onNext}>
             Siguiente
           </Button>
         </PaginationItem>

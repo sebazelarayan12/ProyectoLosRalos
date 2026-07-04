@@ -32,10 +32,19 @@ const OPCIONES_PLANTA = [
 ]
 
 export function FiltrosProfesionales({ filtros, onFiltrosChange }: FiltrosProfesionalesProps) {
+  const cantidadActivos = [filtros.tipo, filtros.planta].filter(Boolean).length
+
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="outline">Filtros</Button>
+        <Button variant="outline">
+          Filtros
+          {cantidadActivos > 0 ? (
+            <span className="ml-1 flex size-4 items-center justify-center rounded-full bg-primary text-[10.5px] font-semibold text-primary-foreground">
+              {cantidadActivos}
+            </span>
+          ) : null}
+        </Button>
       </SheetTrigger>
       <SheetContent>
         <SheetHeader>

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Plus, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { PaginacionResultados } from '@/components/PaginacionResultados'
@@ -32,13 +33,30 @@ export function GestionUsuariosPage() {
 
   return (
     <div className="flex flex-col gap-4 p-4">
-      <div className="flex items-center justify-between">
-        <h1 className="font-heading text-lg font-medium">Gestion de usuarios</h1>
-        <Button onClick={() => navigate('/usuarios/nuevo')}>Nuevo usuario</Button>
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h1 className="font-heading text-xl font-semibold sm:text-2xl">Gestion de usuarios</h1>
+          <p className="mt-0.5 text-xs text-muted-foreground">Cuentas con acceso al sistema de legajos</p>
+        </div>
+        <Button onClick={() => navigate('/usuarios/nuevo')}>
+          <Plus />
+          Nuevo usuario
+        </Button>
       </div>
 
       {isLoading ? (
-        <Skeleton className="h-64 w-full" />
+        <div className="overflow-hidden rounded-xl border">
+          <div className="flex flex-col divide-y">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex items-center justify-between gap-4 p-3.5">
+                <Skeleton className="h-4 w-1/4" />
+                <Skeleton className="h-4 w-1/3" />
+                <Skeleton className="h-6 w-16 rounded-full" />
+                <Skeleton className="h-6 w-16 rounded-full" />
+              </div>
+            ))}
+          </div>
+        </div>
       ) : data && data.items.length > 0 ? (
         <TablaUsuarios
           usuarios={data.items}
@@ -46,7 +64,12 @@ export function GestionUsuariosPage() {
           onResetearPassword={setUsuarioAResetear}
         />
       ) : (
-        <p className="text-muted-foreground">No hay usuarios cargados</p>
+        <div className="flex flex-col items-center gap-1.5 rounded-xl border py-11 text-center">
+          <div className="mb-2 flex size-13 items-center justify-center rounded-full bg-muted text-muted-foreground">
+            <Users className="size-6" />
+          </div>
+          <p className="text-sm text-muted-foreground">No hay usuarios cargados</p>
+        </div>
       )}
 
       <PaginacionResultados

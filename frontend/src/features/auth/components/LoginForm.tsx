@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useNavigate } from 'react-router-dom'
+import { AlertCircle, Eye, EyeOff, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Field, FieldGroup, FieldLabel, FieldError } from '@/components/ui/field'
@@ -27,6 +28,7 @@ export function LoginForm() {
   const { login } = useAuth()
   const navigate = useNavigate()
   const [errorApi, setErrorApi] = useState<string | null>(null)
+  const [mostrarPassword, setMostrarPassword] = useState(false)
 
   const {
     register,
@@ -55,12 +57,42 @@ export function LoginForm() {
         </Field>
         <Field data-invalid={!!errors.password}>
           <FieldLabel htmlFor="password">Contrasenia</FieldLabel>
-          <Input id="password" type="password" aria-invalid={!!errors.password} {...register('password')} />
+          <div className="relative flex items-center">
+            <Input
+              id="password"
+              type={mostrarPassword ? 'text' : 'password'}
+              className="pr-10"
+              aria-invalid={!!errors.password}
+              {...register('password')}
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="absolute right-1 text-muted-foreground hover:text-foreground"
+              onClick={() => setMostrarPassword((v) => !v)}
+              aria-label={mostrarPassword ? 'Ocultar clave ingresada' : 'Mostrar clave ingresada'}
+            >
+              {mostrarPassword ? <EyeOff /> : <Eye />}
+            </Button>
+          </div>
           {errors.password && <FieldError>{errors.password.message}</FieldError>}
         </Field>
-        {errorApi && <p role="alert">{errorApi}</p>}
-        <Button type="submit" disabled={isSubmitting}>
-          Ingresar
+        {errorApi && (
+          <div
+            role="alert"
+            className="flex items-start gap-2 rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
+          >
+            <AlertCircle className="mt-0.5 size-4 shrink-0" />
+            <span>
+              <strong className="font-semibold">{errorApi}.</strong> Verifica tu email y contrasenia e
+              intenta de nuevo.
+            </span>
+          </div>
+        )}
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
+          {isSubmitting && <Loader2 className="animate-spin" />}
+          {isSubmitting ? 'Ingresando...' : 'Ingresar'}
         </Button>
       </FieldGroup>
     </form>

@@ -1,12 +1,35 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { Briefcase, Phone, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { SelectField } from '@/components/SelectField'
 import { useUnsavedChangesWarning } from '@/hooks/useUnsavedChangesWarning'
 import type { ProfesionalRequestPayload } from '../api/crearProfesional'
+
+function SeccionForm({
+  icon: Icon,
+  titulo,
+  children,
+}: {
+  icon: typeof User
+  titulo: string
+  children: React.ReactNode
+}) {
+  return (
+    <div className="flex flex-col gap-4 rounded-xl border bg-card p-4">
+      <div className="flex items-center gap-2">
+        <span className="flex size-8 items-center justify-center rounded-[9px] bg-accent text-accent-foreground">
+          <Icon className="size-[17px]" />
+        </span>
+        <h2 className="font-heading text-[15px] font-semibold">{titulo}</h2>
+      </div>
+      <div className="grid grid-cols-1 gap-x-4 gap-y-3.5 sm:grid-cols-2">{children}</div>
+    </div>
+  )
+}
 
 const profesionalSchema = z.object({
   apellido: z.string().min(1, 'Apellido requerido'),
@@ -141,9 +164,8 @@ export function ProfesionalForm({ modo, valoresIniciales, onSubmit }: Profesiona
   }
 
   return (
-    <form onSubmit={handleSubmit(submit)} noValidate className="flex flex-col gap-6">
-      <FieldGroup>
-        <h2 className="font-heading text-base font-medium">Identificacion</h2>
+    <form onSubmit={handleSubmit(submit)} noValidate className="flex flex-col gap-4">
+      <SeccionForm icon={User} titulo="Datos personales">
         <Field data-invalid={!!errors.apellido}>
           <FieldLabel htmlFor="apellido">Apellido</FieldLabel>
           <Input id="apellido" aria-invalid={!!errors.apellido} {...register('apellido')} />
@@ -194,11 +216,10 @@ export function ProfesionalForm({ modo, valoresIniciales, onSubmit }: Profesiona
           options={opcionesEstadoCivil}
           error={errors.estadoCivil?.message}
         />
-      </FieldGroup>
+      </SeccionForm>
 
-      <FieldGroup>
-        <h2 className="font-heading text-base font-medium">Contacto</h2>
-        <Field data-invalid={!!errors.domicilio}>
+      <SeccionForm icon={Phone} titulo="Domicilio y contacto">
+        <Field className="sm:col-span-2" data-invalid={!!errors.domicilio}>
           <FieldLabel htmlFor="domicilio">Domicilio</FieldLabel>
           <Input id="domicilio" aria-invalid={!!errors.domicilio} {...register('domicilio')} />
           {errors.domicilio && <FieldError>{errors.domicilio.message}</FieldError>}
@@ -230,10 +251,9 @@ export function ProfesionalForm({ modo, valoresIniciales, onSubmit }: Profesiona
           <Input id="email" type="email" aria-invalid={!!errors.email} {...register('email')} />
           {errors.email && <FieldError>{errors.email.message}</FieldError>}
         </Field>
-      </FieldGroup>
+      </SeccionForm>
 
-      <FieldGroup>
-        <h2 className="font-heading text-base font-medium">Cargo</h2>
+      <SeccionForm icon={Briefcase} titulo="Datos laborales">
         <Field data-invalid={!!errors.funcion}>
           <FieldLabel htmlFor="funcion">Funcion</FieldLabel>
           <Input id="funcion" aria-invalid={!!errors.funcion} {...register('funcion')} />
@@ -274,11 +294,13 @@ export function ProfesionalForm({ modo, valoresIniciales, onSubmit }: Profesiona
           options={opcionesTipo}
           error={errors.tipo?.message}
         />
-      </FieldGroup>
+      </SeccionForm>
 
-      <Button type="submit" disabled={isSubmitting}>
-        {modo === 'crear' ? 'Crear profesional' : 'Guardar cambios'}
-      </Button>
+      <div className="sticky bottom-0 -mx-4 flex items-center justify-end gap-2 border-t bg-background/95 px-4 py-3.5 backdrop-blur sm:mx-0 sm:rounded-b-xl">
+        <Button type="submit" disabled={isSubmitting}>
+          {modo === 'crear' ? 'Crear profesional' : 'Guardar cambios'}
+        </Button>
+      </div>
     </form>
   )
 }

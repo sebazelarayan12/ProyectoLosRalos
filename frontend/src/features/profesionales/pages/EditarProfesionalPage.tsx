@@ -1,4 +1,5 @@
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, Link } from 'react-router-dom'
+import { ChevronRight } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { api } from '@/lib/api'
 import { useProfesionalDetalle } from '../hooks/useProfesionalDetalle'
@@ -55,10 +56,27 @@ export function EditarProfesionalPage() {
   }
 
   return (
-    <div className="flex flex-col gap-4 p-4">
-      <h1 className="font-heading text-lg font-medium">
-        Editar profesional — {profesional.apellido}, {profesional.nombre}
-      </h1>
+    <div className="mx-auto flex max-w-3xl flex-col gap-4 p-4">
+      <div className="flex flex-col gap-1.5">
+        <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+          <Link to="/profesionales" className="hover:text-foreground hover:underline">
+            Busqueda de profesionales
+          </Link>
+          <ChevronRight className="size-3.5 opacity-50" />
+          <Link to={`/profesionales/${id}`} className="hover:text-foreground hover:underline">
+            {profesional.apellido}, {profesional.nombre}
+          </Link>
+          <ChevronRight className="size-3.5 opacity-50" />
+          <span className="font-medium text-foreground">Editar</span>
+        </div>
+        <span className="text-xs font-semibold tracking-wide text-primary uppercase">Editar legajo</span>
+        <h1 className="font-heading text-xl font-semibold sm:text-2xl">
+          {profesional.apellido}, {profesional.nombre}
+        </h1>
+        <p className="max-w-lg text-sm text-muted-foreground">
+          {profesional.nroExpediente ?? '-'} - Modifica los datos necesarios y guarda los cambios.
+        </p>
+      </div>
       <ProfesionalForm
         modo="editar"
         valoresIniciales={aValoresFormulario(profesional)}

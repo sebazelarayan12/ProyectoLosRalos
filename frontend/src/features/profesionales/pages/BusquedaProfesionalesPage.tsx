@@ -1,5 +1,6 @@
 import { useDeferredValue, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Loader2, Plus, Search, SearchX } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Field, FieldLabel } from '@/components/ui/field'
@@ -55,34 +56,67 @@ export function BusquedaProfesionalesPage() {
 
   const handleVerLegajo = (id: string) => navigate(`/profesionales/${id}`)
 
+  const sinResultados = !isLoading && data && data.items.length === 0
+
   return (
     <div className="flex flex-col gap-4 p-4">
-      <div className="flex items-end justify-between gap-4">
-        <Field>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <Field className="max-w-[420px] flex-1">
           <FieldLabel htmlFor="apellido">Apellido</FieldLabel>
-          <Input
-            id="apellido"
-            value={apellido}
-            onChange={(e) => handleApellidoChange(e.target.value)}
-            placeholder="Buscar por apellido"
-          />
+          <div className="relative flex items-center">
+            <Search className="pointer-events-none absolute left-2.5 size-4 text-muted-foreground" />
+            <Input
+              id="apellido"
+              value={apellido}
+              onChange={(e) => handleApellidoChange(e.target.value)}
+              placeholder="Buscar por apellido..."
+              className="pl-8"
+            />
+            {isLoading ? (
+              <Loader2 className="absolute right-2.5 size-4 animate-spin text-muted-foreground" />
+            ) : null}
+          </div>
         </Field>
         <div className="flex items-end gap-2">
           <FiltrosProfesionales filtros={filtros} onFiltrosChange={handleFiltrosChange} />
           {usuario?.rol === 'Admin' ? (
-            <Button onClick={() => navigate('/profesionales/nuevo')}>Nuevo profesional</Button>
+            <Button onClick={() => navigate('/profesionales/nuevo')}>
+              <Plus />
+              Nuevo profesional
+            </Button>
           ) : null}
         </div>
       </div>
 
       {isLoading ? (
-        <Skeleton className="h-64 w-full" />
+        <div className="overflow-hidden rounded-xl border">
+          <div className="flex flex-col divide-y">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex items-center justify-between gap-4 p-3.5">
+                <Skeleton className="h-4 w-1/3" />
+                <Skeleton className="h-4 w-1/4" />
+                <Skeleton className="h-6 w-24 rounded-full" />
+                <Skeleton className="h-7 w-20 rounded-md" />
+              </div>
+            ))}
+          </div>
+        </div>
       ) : data && data.items.length > 0 ? (
         <TablaResultados profesionales={data.items} onVerLegajo={handleVerLegajo} />
       ) : (
-        <p className="text-muted-foreground">
-          No se encontraron profesionales con ese apellido
-        </p>
+        <div className="flex flex-col items-center gap-1.5 rounded-xl border py-11 text-center">
+          <div className="mb-2 flex size-13 items-center justify-center rounded-full bg-muted text-muted-foreground">
+            <SearchX className="size-6" />
+          </div>
+          <h2 className="font-heading font-semibold">
+            {apellido ? 'Sin coincidencias' : 'Comenza tu busqueda'}
+          </h2>
+          <p className="max-w-[320px] text-sm text-muted-foreground">
+            {sinResultados
+              ? 'No se encontraron profesionales con ese apellido'
+              : 'Ingresa un apellido para ver los legajos disponibles. Podes afinar con los filtros.'}
+          </p>
+        </div>
       )}
 
       <PaginacionResultados

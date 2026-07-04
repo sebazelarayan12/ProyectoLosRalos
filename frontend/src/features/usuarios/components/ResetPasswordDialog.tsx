@@ -50,10 +50,17 @@ export function ResetPasswordDialog({ usuario, open, onOpenChange }: ResetPasswo
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Resetear password de {usuario.nombre}</DialogTitle>
+          <DialogTitle>Resetear contrasenia</DialogTitle>
+          <p className="text-xs text-muted-foreground">
+            {usuario.nombre} - {usuario.email}
+          </p>
         </DialogHeader>
         <form onSubmit={handleSubmit((values) => mutation.mutate(values))} noValidate>
           <FieldGroup>
+            <p className="rounded-lg border bg-muted p-3 text-sm leading-relaxed">
+              Se va a asignar una <strong className="font-semibold">nueva contrasenia temporal</strong> a{' '}
+              {usuario.nombre}. Debera cambiarla en su proximo inicio de sesion.
+            </p>
             <Field data-invalid={!!errors.nuevaPassword}>
               <FieldLabel htmlFor="nuevaPassword">Nueva password temporal</FieldLabel>
               <Input

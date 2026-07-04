@@ -46,15 +46,17 @@ export function PerfilProfesionalPage() {
         nroExpediente={profesional.nroExpediente}
         esAdmin={esAdmin}
         onEditar={() => navigate(`/profesionales/${id}/editar`)}
+        tipo={profesional.tipo}
+        activo={profesional.activo}
       />
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+      <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-[minmax(0,340px)_minmax(0,1fr)] md:gap-6">
         <DatosProfesional profesional={profesional} />
         <div className="flex flex-col gap-4">
-          <GridDocumentos documentos={profesional.documentos} onVerDocumento={setDocumentoVisor} />
           {esAdmin ? (
             <SubirDocumentoDropzone profesionalId={id!} onSubido={invalidarProfesional} />
           ) : null}
+          <GridDocumentos documentos={profesional.documentos} onVerDocumento={setDocumentoVisor} />
         </div>
       </div>
 

@@ -1,4 +1,5 @@
-import { Navigate, Outlet } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
+import { AppLayout } from '@/components/AppLayout'
 import { useAuth } from '@/features/auth/context/AuthContext'
 
 export function PrivateRoute() {
@@ -6,5 +7,5 @@ export function PrivateRoute() {
 
   if (!token) return <Navigate to="/login" replace />
 
-  return <Outlet />
+  return <AppLayout />
 }
