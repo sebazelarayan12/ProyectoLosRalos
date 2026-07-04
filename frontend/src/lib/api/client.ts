@@ -5,7 +5,7 @@ type CreateApiClientOptions = {
   onUnauthorized: () => void
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_URL ?? '/api/v1'
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1'
 
 export function createApiClient({ getToken, onUnauthorized }: CreateApiClientOptions): AxiosInstance {
   const client = axios.create({ baseURL: API_BASE_URL })
