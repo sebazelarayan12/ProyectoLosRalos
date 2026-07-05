@@ -60,8 +60,8 @@ export function BusquedaProfesionalesPage() {
 
   return (
     <div className="flex flex-col gap-4 p-4">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <Field className="max-w-[420px] flex-1">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
+        <Field className="sm:max-w-[420px] sm:flex-1">
           <FieldLabel htmlFor="busqueda">Apellido o expediente</FieldLabel>
           <div className="relative flex items-center">
             <Search className="pointer-events-none absolute left-2.5 size-4 text-muted-foreground" />
