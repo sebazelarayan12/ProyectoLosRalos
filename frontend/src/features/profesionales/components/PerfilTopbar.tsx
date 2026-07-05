@@ -1,7 +1,7 @@
-import { Link } from 'react-router-dom'
-import { ChevronRight, Pencil } from 'lucide-react'
+import { Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { VolverBusquedaButton } from './VolverBusquedaButton'
 
 type PerfilTopbarProps = {
   apellido: string
@@ -25,13 +25,7 @@ export function PerfilTopbar({
   return (
     <div className="flex flex-wrap items-start justify-between gap-4 border-b pb-4">
       <div className="flex min-w-0 flex-col gap-2">
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Link to="/profesionales" className="hover:text-foreground hover:underline">
-            Busqueda de profesionales
-          </Link>
-          <ChevronRight className="size-3.5 opacity-50" />
-          <span className="font-medium text-foreground">Perfil</span>
-        </div>
+        <VolverBusquedaButton />
         <div className="flex flex-wrap items-center gap-2.5">
           <h1 className="font-heading text-xl font-semibold sm:text-2xl">
             {apellido}, {nombre}
