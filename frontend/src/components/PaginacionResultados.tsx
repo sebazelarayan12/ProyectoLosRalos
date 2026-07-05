@@ -23,9 +23,6 @@ export function PaginacionResultados({
           </Button>
         </PaginationItem>
         <PaginationItem>
-          <span className="text-xs text-muted-foreground">Navegacion por cursor</span>
-        </PaginationItem>
-        <PaginationItem>
           <Button variant="outline" size="sm" disabled={!canGoNext} onClick={onNext}>
             Siguiente
           </Button>
