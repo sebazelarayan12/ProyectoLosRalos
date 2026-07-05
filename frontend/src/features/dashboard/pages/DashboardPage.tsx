@@ -18,6 +18,9 @@ export function DashboardPage() {
       {usuario?.rol === 'Admin' ? (
         <Button onClick={() => navigate('/usuarios')}>Gestion de usuarios</Button>
       ) : null}
+      {usuario?.rol === 'Admin' ? (
+        <Button onClick={() => navigate('/auditoria')}>Auditoria</Button>
+      ) : null}
       <Button variant="outline" onClick={handleLogout}>Cerrar sesion</Button>
     </div>
   )

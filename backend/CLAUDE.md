@@ -225,6 +225,11 @@ Usar (Apellido, FechaCreacion) como clave del cursor — NO Guid como secundario
 
 En EF Core LINQ para comparar strings: `string.Compare(a, b) > 0` — se traduce a SQL. NO usar `a > b` en C# (CS0019).
 
+`AuditLogRepository.SearchAsync` usa cursor de una sola clave (`Timestamp`, sin tiebreak por Id) —
+distinto del patron `(Apellido, FechaCreacion)` de Profesional. Tradeoff aceptado: volumen de audit
+en este proyecto es bajo (100-500 usuarios), colision exacta de `Timestamp` entre dos entradas es
+improbable. Mismo criterio de tradeoff que `TipoDocumento.GetOrCreateAsync`.
+
 ### Check constraints en EF Core 8
 
 Usar `builder.ToTable("tabla", t => { t.HasCheckConstraint(...); })` — NO `builder.HasCheckConstraint(...)` directo (obsoleto CS0618).

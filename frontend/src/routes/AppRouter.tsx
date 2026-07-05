@@ -8,6 +8,7 @@ import { CrearProfesionalPage } from '@/features/profesionales/pages/CrearProfes
 import { EditarProfesionalPage } from '@/features/profesionales/pages/EditarProfesionalPage'
 import { GestionUsuariosPage } from '@/features/usuarios/pages/GestionUsuariosPage'
 import { CrearUsuarioPage } from '@/features/usuarios/pages/CrearUsuarioPage'
+import { AuditoriaPage } from '@/features/auditoria/pages/AuditoriaPage'
 
 export function AppRouter() {
   return (
@@ -21,6 +22,7 @@ export function AppRouter() {
         <Route path="/profesionales/:id/editar" element={<EditarProfesionalPage />} />
         <Route path="/usuarios" element={<GestionUsuariosPage />} />
         <Route path="/usuarios/nuevo" element={<CrearUsuarioPage />} />
+        <Route path="/auditoria" element={<AuditoriaPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
