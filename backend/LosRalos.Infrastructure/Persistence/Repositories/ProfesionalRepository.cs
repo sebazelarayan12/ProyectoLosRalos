@@ -30,13 +30,15 @@ public class ProfesionalRepository(AppDbContext db) : IProfesionalRepository
     }
 
     public async Task<(List<Profesional> Items, string? NextCursor)> SearchAsync(
-        string? apellido, TipoLegajo? tipo, Planta? planta,
+        string? busqueda, TipoLegajo? tipo, Planta? planta,
         string? cursor, int porPagina, CancellationToken ct)
     {
         IQueryable<Profesional> q = db.Profesionales.Where(p => p.Activo);
 
-        if (!string.IsNullOrWhiteSpace(apellido))
-            q = q.Where(p => EF.Functions.ILike(p.Apellido, $"%{apellido}%"));
+        if (!string.IsNullOrWhiteSpace(busqueda))
+            q = q.Where(p =>
+                EF.Functions.ILike(p.Apellido, $"%{busqueda}%") ||
+                (p.NroExpediente != null && EF.Functions.ILike(p.NroExpediente, $"%{busqueda}%")));
 
         if (tipo.HasValue)
             q = q.Where(p => p.Tipo == tipo.Value);

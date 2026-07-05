@@ -14,10 +14,10 @@ public class ProfesionalService(
     ILogger<ProfesionalService> logger) : IProfesionalService
 {
     public async Task<PaginatedResponse<ProfesionalResumenResponse>> SearchAsync(
-        string? apellido, TipoLegajo? tipo, Planta? planta,
+        string? busqueda, TipoLegajo? tipo, Planta? planta,
         string? cursor, int porPagina, CancellationToken ct)
     {
-        var (items, nextCursor) = await repo.SearchAsync(apellido, tipo, planta, cursor, porPagina, ct)
+        var (items, nextCursor) = await repo.SearchAsync(busqueda, tipo, planta, cursor, porPagina, ct)
             .ConfigureAwait(false);
 
         return new PaginatedResponse<ProfesionalResumenResponse>

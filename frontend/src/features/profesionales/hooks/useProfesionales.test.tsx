@@ -40,7 +40,7 @@ describe('useProfesionales', () => {
     }
     vi.mocked(api.get).mockResolvedValueOnce({ data: respuesta })
 
-    const { result } = renderHook(() => useProfesionales({ apellido: 'Perez', porPagina: 20 }), {
+    const { result } = renderHook(() => useProfesionales({ busqueda: 'Perez', porPagina: 20 }), {
       wrapper,
     })
 
@@ -48,7 +48,7 @@ describe('useProfesionales', () => {
 
     expect(result.current.data).toEqual(respuesta)
     expect(api.get).toHaveBeenCalledWith('/profesionales', {
-      params: { apellido: 'Perez', porPagina: 20 },
+      params: { busqueda: 'Perez', porPagina: 20 },
     })
   })
 })

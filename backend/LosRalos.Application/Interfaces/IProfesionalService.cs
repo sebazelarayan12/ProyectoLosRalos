@@ -7,7 +7,7 @@ namespace LosRalos.Application.Interfaces;
 public interface IProfesionalService
 {
     Task<PaginatedResponse<ProfesionalResumenResponse>> SearchAsync(
-        string? apellido, TipoLegajo? tipo, Planta? planta,
+        string? busqueda, TipoLegajo? tipo, Planta? planta,
         string? cursor, int porPagina, CancellationToken ct);
 
     Task<ProfesionalDetalleResponse> GetByIdAsync(

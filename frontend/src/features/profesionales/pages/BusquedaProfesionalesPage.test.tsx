@@ -95,19 +95,19 @@ describe('BusquedaProfesionalesPage', () => {
     expect(screen.queryByRole('button', { name: /nuevo profesional/i })).not.toBeInTheDocument()
   })
 
-  test('escribir en el buscador filtra por apellido tras el debounce', async () => {
+  test('escribir en el buscador filtra por apellido o expediente tras el debounce', async () => {
     setUsuario('Visor')
     vi.mocked(api.get).mockResolvedValue({ data: respuestaConResultados })
     const user = userEvent.setup()
     renderPage()
     await screen.findByText('Perez, Ana')
 
-    await user.type(screen.getByLabelText(/apellido/i), 'Perez')
+    await user.type(screen.getByLabelText(/apellido o expediente/i), 'Perez')
 
     await waitFor(() => {
       expect(api.get).toHaveBeenCalledWith(
         '/profesionales',
-        expect.objectContaining({ params: expect.objectContaining({ apellido: 'Perez' }) }),
+        expect.objectContaining({ params: expect.objectContaining({ busqueda: 'Perez' }) }),
       )
     })
   })

@@ -80,6 +80,7 @@ public class ProfesionalConfiguration : IEntityTypeConfiguration<Profesional>
             .HasFilter("\"Activo\" = true");
 
         // GIN trigram index on Apellido added as raw SQL in migration
+        // GIN trigram index on NroExpediente added as raw SQL in migration (busqueda por expediente)
 
     }
 }

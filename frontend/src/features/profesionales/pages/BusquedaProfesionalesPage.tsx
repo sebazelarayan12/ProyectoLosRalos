@@ -15,23 +15,23 @@ import { PaginacionResultados } from '@/components/PaginacionResultados'
 export function BusquedaProfesionalesPage() {
   const { usuario } = useAuth()
   const navigate = useNavigate()
-  const [apellido, setApellido] = useState('')
+  const [busqueda, setBusqueda] = useState('')
   const [filtros, setFiltros] = useState<Filtros>({})
   const [cursor, setCursor] = useState<string | undefined>(undefined)
   const [historial, setHistorial] = useState<(string | undefined)[]>([])
-  const debouncedApellido = useDebounce(apellido, 300)
-  const deferredApellido = useDeferredValue(debouncedApellido)
+  const debouncedBusqueda = useDebounce(busqueda, 300)
+  const deferredBusqueda = useDeferredValue(debouncedBusqueda)
 
   const { data, isLoading } = useProfesionales({
-    apellido: deferredApellido || undefined,
+    busqueda: deferredBusqueda || undefined,
     tipo: filtros.tipo,
     planta: filtros.planta,
     cursor,
     porPagina: 20,
   })
 
-  const handleApellidoChange = (value: string) => {
-    setApellido(value)
+  const handleBusquedaChange = (value: string) => {
+    setBusqueda(value)
     setCursor(undefined)
     setHistorial([])
   }
@@ -62,14 +62,14 @@ export function BusquedaProfesionalesPage() {
     <div className="flex flex-col gap-4 p-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <Field className="max-w-[420px] flex-1">
-          <FieldLabel htmlFor="apellido">Apellido</FieldLabel>
+          <FieldLabel htmlFor="busqueda">Apellido o expediente</FieldLabel>
           <div className="relative flex items-center">
             <Search className="pointer-events-none absolute left-2.5 size-4 text-muted-foreground" />
             <Input
-              id="apellido"
-              value={apellido}
-              onChange={(e) => handleApellidoChange(e.target.value)}
-              placeholder="Buscar por apellido..."
+              id="busqueda"
+              value={busqueda}
+              onChange={(e) => handleBusquedaChange(e.target.value)}
+              placeholder="Buscar por apellido o N. de expediente..."
               className="pl-8"
             />
             {isLoading ? (
@@ -109,12 +109,12 @@ export function BusquedaProfesionalesPage() {
             <SearchX className="size-6" />
           </div>
           <h2 className="font-heading font-semibold">
-            {apellido ? 'Sin coincidencias' : 'Comenza tu busqueda'}
+            {busqueda ? 'Sin coincidencias' : 'Comenza tu busqueda'}
           </h2>
           <p className="max-w-[320px] text-sm text-muted-foreground">
             {sinResultados
-              ? 'No se encontraron profesionales con ese apellido'
-              : 'Ingresa un apellido para ver los legajos disponibles. Podes afinar con los filtros.'}
+              ? 'No se encontraron profesionales con ese apellido o expediente'
+              : 'Ingresa un apellido o numero de expediente para ver los legajos disponibles. Podes afinar con los filtros.'}
           </p>
         </div>
       )}

@@ -10,11 +10,11 @@ function buildClient() {
 }
 
 describe('buscarProfesionales', () => {
-  test('envia apellido, tipo, planta, cursor y porPagina como query params', async () => {
+  test('envia busqueda, tipo, planta, cursor y porPagina como query params', async () => {
     const { client, mock } = buildClient()
     mock.onGet('/profesionales').reply((config) => {
       expect(config.params).toEqual({
-        apellido: 'Perez',
+        busqueda: 'Perez',
         tipo: 'Asistencial',
         planta: 'PermanenteEfectivo',
         cursor: 'abc',
@@ -24,7 +24,7 @@ describe('buscarProfesionales', () => {
     })
 
     await buscarProfesionales(client, {
-      apellido: 'Perez',
+      busqueda: 'Perez',
       tipo: 'Asistencial',
       planta: 'PermanenteEfectivo',
       cursor: 'abc',

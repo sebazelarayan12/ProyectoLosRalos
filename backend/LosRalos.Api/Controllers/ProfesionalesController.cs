@@ -16,14 +16,14 @@ public class ProfesionalesController(IProfesionalService service, IDocumentoServ
     [Authorize(Roles = "Admin,Visor")]
     [ProducesResponseType(200)]
     public async Task<IActionResult> Search(
-        [FromQuery] string? apellido,
+        [FromQuery] string? busqueda,
         [FromQuery] TipoLegajo? tipo,
         [FromQuery] Planta? planta,
         [FromQuery] string? cursor,
         [FromQuery] int porPagina = 20,
         CancellationToken ct = default)
     {
-        var result = await service.SearchAsync(apellido, tipo, planta, cursor, porPagina, ct)
+        var result = await service.SearchAsync(busqueda, tipo, planta, cursor, porPagina, ct)
             .ConfigureAwait(false);
         return Ok(result);
     }

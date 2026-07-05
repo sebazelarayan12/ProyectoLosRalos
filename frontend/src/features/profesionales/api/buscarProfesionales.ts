@@ -4,7 +4,7 @@ export type TipoLegajo = 'Asistencial' | 'Administrativo'
 export type Planta = 'Transitorio' | 'PermanenteInterino' | 'PermanenteEfectivo'
 
 export type BuscarProfesionalesParams = {
-  apellido?: string
+  busqueda?: string
   tipo?: TipoLegajo
   planta?: Planta
   cursor?: string

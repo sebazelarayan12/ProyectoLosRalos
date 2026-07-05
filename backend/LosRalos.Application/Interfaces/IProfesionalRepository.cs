@@ -6,7 +6,7 @@ namespace LosRalos.Application.Interfaces;
 public interface IProfesionalRepository
 {
     Task<(List<Profesional> Items, string? NextCursor)> SearchAsync(
-        string? apellido, TipoLegajo? tipo, Planta? planta,
+        string? busqueda, TipoLegajo? tipo, Planta? planta,
         string? cursor, int porPagina, CancellationToken ct);
 
     Task<Profesional?> GetByIdAsync(Guid id, CancellationToken ct);
