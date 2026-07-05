@@ -1,7 +1,9 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Briefcase, Phone, User } from 'lucide-react'
+import { Briefcase, MapPin, Phone, User } from 'lucide-react'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Field, FieldError, FieldLabel } from '@/components/ui/field'
@@ -9,25 +11,45 @@ import { SelectField } from '@/components/SelectField'
 import { useUnsavedChangesWarning } from '@/hooks/useUnsavedChangesWarning'
 import type { ProfesionalRequestPayload } from '../api/crearProfesional'
 
+type EstadoSeccion = { variant: 'secondary' | 'outline' | 'destructive'; label: string }
+
 function SeccionForm({
+  value,
   icon: Icon,
   titulo,
+  subtitulo,
+  estado,
   children,
 }: {
+  value: string
   icon: typeof User
   titulo: string
+  subtitulo: string
+  estado: EstadoSeccion | null
   children: React.ReactNode
 }) {
   return (
-    <div className="flex flex-col gap-4 rounded-xl border bg-card p-4">
-      <div className="flex items-center gap-2">
-        <span className="flex size-8 items-center justify-center rounded-[9px] bg-accent text-accent-foreground">
-          <Icon className="size-[17px]" />
+    <AccordionItem value={value} className="rounded-xl border bg-card px-4">
+      <AccordionTrigger className="py-4 hover:no-underline">
+        <span className="flex min-w-0 flex-1 items-center gap-3">
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-[9px] bg-accent text-accent-foreground">
+            <Icon className="size-[17px]" />
+          </span>
+          <span className="flex min-w-0 flex-col gap-0.5 text-left">
+            <span className="font-heading text-[15px] font-semibold leading-none">{titulo}</span>
+            <span className="text-xs font-normal text-muted-foreground">{subtitulo}</span>
+          </span>
         </span>
-        <h2 className="font-heading text-[15px] font-semibold">{titulo}</h2>
-      </div>
-      <div className="grid grid-cols-1 gap-x-4 gap-y-3.5 sm:grid-cols-2">{children}</div>
-    </div>
+        {estado && (
+          <Badge variant={estado.variant} className="mr-1">
+            {estado.label}
+          </Badge>
+        )}
+      </AccordionTrigger>
+      <AccordionContent className="pb-4">
+        <div className="grid grid-cols-1 gap-x-4 gap-y-3.5 sm:grid-cols-2">{children}</div>
+      </AccordionContent>
+    </AccordionItem>
   )
 }
 
@@ -47,7 +69,7 @@ const profesionalSchema = z.object({
   provincia: z.string().min(1, 'Provincia requerida'),
   codigoPostal: z.string(),
   telefono: z.string(),
-  email: z.string().refine((v) => v === '' || z.string().email().safeParse(v).success, {
+  email: z.string().refine((v) => v === '' || z.email().safeParse(v).success, {
     message: 'Email invalido',
   }),
   funcion: z.string().min(1, 'Funcion requerida'),
@@ -116,6 +138,24 @@ function aNuloSiVacio(valor: string): string | null {
   return valor.trim() === '' ? null : valor
 }
 
+const camposRequeridosPorSeccion = {
+  personales: ['apellido', 'nombre', 'dni', 'cuil', 'fechaNacimiento', 'sexo', 'estadoCivil'],
+  domicilio: ['domicilio', 'localidad', 'provincia'],
+  contacto: [],
+  laborales: ['funcion', 'nivel', 'planta', 'tipo'],
+} satisfies Record<string, (keyof ProfesionalFormValues)[]>
+
+function estadoSeccion(
+  campos: (keyof ProfesionalFormValues)[],
+  errors: Partial<Record<keyof ProfesionalFormValues, unknown>>,
+  valores: ProfesionalFormValues,
+): EstadoSeccion | null {
+  if (campos.length === 0) return null
+  if (campos.some((campo) => !!errors[campo])) return { variant: 'destructive', label: 'Con errores' }
+  const completo = campos.every((campo) => !!valores[campo])
+  return completo ? { variant: 'secondary', label: 'Completo' } : { variant: 'outline', label: 'Pendiente' }
+}
+
 type ProfesionalFormProps = {
   modo: 'crear' | 'editar'
   valoresIniciales?: ProfesionalFormValues
@@ -163,9 +203,18 @@ export function ProfesionalForm({ modo, valoresIniciales, onSubmit }: Profesiona
     })
   }
 
+  const valorPorDefecto = modo === 'crear' ? ['personales'] : ['personales', 'domicilio', 'contacto', 'laborales']
+
   return (
     <form onSubmit={handleSubmit(submit)} noValidate className="flex flex-col gap-4">
-      <SeccionForm icon={User} titulo="Datos personales">
+      <Accordion type="multiple" defaultValue={valorPorDefecto} className="gap-4">
+      <SeccionForm
+        value="personales"
+        icon={User}
+        titulo="Datos personales"
+        subtitulo="Identificacion del profesional"
+        estado={estadoSeccion(camposRequeridosPorSeccion.personales, errors, valores)}
+      >
         <Field data-invalid={!!errors.apellido}>
           <FieldLabel htmlFor="apellido">Apellido</FieldLabel>
           <Input id="apellido" aria-invalid={!!errors.apellido} {...register('apellido')} />
@@ -218,7 +267,13 @@ export function ProfesionalForm({ modo, valoresIniciales, onSubmit }: Profesiona
         />
       </SeccionForm>
 
-      <SeccionForm icon={Phone} titulo="Domicilio y contacto">
+      <SeccionForm
+        value="domicilio"
+        icon={MapPin}
+        titulo="Domicilio"
+        subtitulo="Direccion de residencia"
+        estado={estadoSeccion(camposRequeridosPorSeccion.domicilio, errors, valores)}
+      >
         <Field className="sm:col-span-2" data-invalid={!!errors.domicilio}>
           <FieldLabel htmlFor="domicilio">Domicilio</FieldLabel>
           <Input id="domicilio" aria-invalid={!!errors.domicilio} {...register('domicilio')} />
@@ -242,6 +297,15 @@ export function ProfesionalForm({ modo, valoresIniciales, onSubmit }: Profesiona
           <FieldLabel htmlFor="codigoPostal">Codigo postal</FieldLabel>
           <Input id="codigoPostal" {...register('codigoPostal')} />
         </Field>
+      </SeccionForm>
+
+      <SeccionForm
+        value="contacto"
+        icon={Phone}
+        titulo="Contacto"
+        subtitulo="Telefono y correo"
+        estado={estadoSeccion(camposRequeridosPorSeccion.contacto, errors, valores)}
+      >
         <Field>
           <FieldLabel htmlFor="telefono">Telefono</FieldLabel>
           <Input id="telefono" {...register('telefono')} />
@@ -253,7 +317,13 @@ export function ProfesionalForm({ modo, valoresIniciales, onSubmit }: Profesiona
         </Field>
       </SeccionForm>
 
-      <SeccionForm icon={Briefcase} titulo="Datos laborales">
+      <SeccionForm
+        value="laborales"
+        icon={Briefcase}
+        titulo="Datos laborales"
+        subtitulo="Funcion, planta y expediente"
+        estado={estadoSeccion(camposRequeridosPorSeccion.laborales, errors, valores)}
+      >
         <Field data-invalid={!!errors.funcion}>
           <FieldLabel htmlFor="funcion">Funcion</FieldLabel>
           <Input id="funcion" aria-invalid={!!errors.funcion} {...register('funcion')} />
@@ -295,6 +365,7 @@ export function ProfesionalForm({ modo, valoresIniciales, onSubmit }: Profesiona
           error={errors.tipo?.message}
         />
       </SeccionForm>
+      </Accordion>
 
       <div className="sticky bottom-0 -mx-4 flex items-center justify-end gap-2 border-t bg-background/95 px-4 py-3.5 backdrop-blur sm:mx-0 sm:rounded-b-xl">
         <Button type="submit" disabled={isSubmitting}>
