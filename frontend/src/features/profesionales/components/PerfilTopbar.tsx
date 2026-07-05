@@ -37,18 +37,20 @@ export function PerfilTopbar({
             </Badge>
           ) : null}
         </div>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span className="font-medium tabular-nums text-foreground">{nroExpediente ?? '-'}</span>
-          {tipo ? (
-            <>
-              <span className="size-[3px] rounded-full bg-border" />
+        {nroExpediente || tipo ? (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            {nroExpediente ? (
+              <span className="font-medium tabular-nums text-foreground">{nroExpediente}</span>
+            ) : null}
+            {nroExpediente && tipo ? <span className="size-[3px] rounded-full bg-border" /> : null}
+            {tipo ? (
               <Badge variant="secondary" className="gap-1.5 font-normal">
                 <span className={`size-1.5 rounded-full ${tipo === 'Asistencial' ? 'bg-success' : 'bg-primary'}`} />
                 {tipo}
               </Badge>
-            </>
-          ) : null}
-        </div>
+            ) : null}
+          </div>
+        ) : null}
       </div>
       {esAdmin ? (
         <Button onClick={onEditar}>
