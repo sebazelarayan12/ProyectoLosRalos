@@ -166,7 +166,7 @@ public class DocumentosControllerTests : IAsyncLifetime
 
         resp.StatusCode.Should().Be(HttpStatusCode.Created);
         var body = await resp.Content.ReadFromJsonAsync<JsonElement>();
-        body.GetProperty("tipoDocumento").GetProperty("nombre").GetString().Should().Be("Titulo");
+        body.GetProperty("tipoDocumento").GetProperty("nombre").GetString().Should().Be("TITULO");
         body.GetProperty("contentType").GetString().Should().Be("image/jpeg");
     }
 
@@ -230,7 +230,20 @@ public class DocumentosControllerTests : IAsyncLifetime
         var tipos = await tiposResp.Content.ReadFromJsonAsync<JsonElement>();
         var nombres = tipos.EnumerateArray().Select(t => t.GetProperty("nombre").GetString()).ToList();
 
-        nombres.Should().Contain("Certificado Antecedentes Penales");
+        nombres.Should().Contain("CERTIFICADO ANTECEDENTES PENALES");
+    }
+
+    [Fact]
+    public async Task Subir_TipoDocumentoEnMinusculas_SeNormalizaAMayusculas()
+    {
+        var profesionalId = await CrearProfesionalAsync("Vega", "10.000.011", "20-10000011-0");
+
+        var resp = await _adminClient.PostAsync(
+            $"/api/v1/profesionales/{profesionalId}/documentos",
+            BuildUpload(JpegBytes, "foto.jpg", "carnet vacunacion"));
+
+        var body = await resp.Content.ReadFromJsonAsync<JsonElement>();
+        body.GetProperty("tipoDocumento").GetProperty("nombre").GetString().Should().Be("CARNET VACUNACION");
     }
 
     // --- GET /api/v1/documentos/{id}/file ---
@@ -333,7 +346,7 @@ public class DocumentosControllerTests : IAsyncLifetime
         var body = await resp.Content.ReadFromJsonAsync<JsonElement>();
         var nombres = body.EnumerateArray().Select(t => t.GetProperty("nombre").GetString()).ToList();
 
-        nombres.Should().Contain(["Dni Frente", "Dni Dorso", "Titulo", "Resolucion"]);
+        nombres.Should().Contain(["DNI FRENTE", "DNI DORSO", "TITULO", "RESOLUCION"]);
     }
 
     [Fact]

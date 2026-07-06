@@ -286,6 +286,13 @@ condition en creacion concurrente del mismo nombre — el indice UNIQUE en DB pr
 pero una insercion concurrente lanzaria `DbUpdateException` sin capturar. Aceptable para MVP
 (100-500 usuarios, subida de documentos no es una operacion de alta concurrencia sobre el mismo tipo).
 
+`Nombre` siempre se normaliza a mayusculas (`.Trim().ToUpperInvariant()`) antes de comparar o
+guardar — convención para que el catalogo quede consistente sin importar el casing que tipee el
+usuario en el combobox del frontend. El seed inicial de Paso 4 (`Dni Frente`, `Titulo`, etc., en la
+migration `AddDocumentos`) se normalizo a mayusculas via una migration de datos separada
+(`NormalizarTipoDocumentoMayusculas`, solo `UPDATE ... SET "Nombre" = UPPER("Nombre")`) — no se
+edito la migration original (regla: nunca tocar una migration ya aplicada).
+
 ### AuditLog — DetalleExtra en edicion
 
 `DetalleExtra` para `EditarProfesional` = nombres de campos cambiados separados por coma, SIN valores (privacidad). `ApplyPatch` retorna `List<string>` de nombres. No incluir campos que no cambiaron.

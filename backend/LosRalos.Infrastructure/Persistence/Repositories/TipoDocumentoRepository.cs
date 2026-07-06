@@ -8,7 +8,7 @@ public class TipoDocumentoRepository(AppDbContext db) : ITipoDocumentoRepository
 {
     public async Task<TipoDocumento> GetOrCreateAsync(string nombre, CancellationToken ct)
     {
-        var nombreNormalizado = nombre.Trim();
+        var nombreNormalizado = nombre.Trim().ToUpperInvariant();
 
         var existente = await db.TiposDocumento
             .FirstOrDefaultAsync(t => t.Nombre.ToLower() == nombreNormalizado.ToLower(), ct)
