@@ -24,7 +24,7 @@ public class AuditControllerTests : IAsyncLifetime
 
     private WebApplicationFactory<Program> _factory = null!;
     private HttpClient _adminClient = null!;
-    private HttpClient _visorClient = null!;
+    private HttpClient _administrativoClient = null!;
     private HttpClient _anonClient = null!;
 
     public async Task InitializeAsync()
@@ -58,13 +58,13 @@ public class AuditControllerTests : IAsyncLifetime
         _anonClient = _factory.CreateClient();
         await SeedAsync();
         _adminClient = await BuildClientAsync("admin@test.com", "Test1234");
-        _visorClient = await BuildClientAsync("visor@test.com", "Test1234");
+        _administrativoClient = await BuildClientAsync("administrativo@test.com", "Test1234");
     }
 
     public async Task DisposeAsync()
     {
         _adminClient.Dispose();
-        _visorClient.Dispose();
+        _administrativoClient.Dispose();
         _anonClient.Dispose();
         await _factory.DisposeAsync();
         await _postgres.DisposeAsync();
@@ -96,10 +96,10 @@ public class AuditControllerTests : IAsyncLifetime
             new Usuario
             {
                 Id = Guid.NewGuid(),
-                Nombre = "Visor Test",
-                Email = "visor@test.com",
+                Nombre = "Administrativo Test",
+                Email = "administrativo@test.com",
                 PasswordHash = hasher.Hash("Test1234"),
-                Rol = Application.Entities.Enums.RolUsuario.Visor,
+                Rol = Application.Entities.Enums.RolUsuario.Administrativo,
                 Activo = true,
                 FechaCreacion = DateTime.UtcNow,
                 FechaActualizacion = DateTime.UtcNow
@@ -125,9 +125,9 @@ public class AuditControllerTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Search_VisorToken_Retorna403()
+    public async Task Search_AdministrativoToken_Retorna403()
     {
-        var resp = await _visorClient.GetAsync("/api/v1/audit");
+        var resp = await _administrativoClient.GetAsync("/api/v1/audit");
         resp.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 

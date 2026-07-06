@@ -20,7 +20,7 @@ type LoginFormValues = z.infer<typeof loginSchema>
 type LoginResponse = {
   token: string
   nombre: string
-  rol: 'Admin' | 'Visor'
+  rol: 'Admin' | 'Administrativo'
   expiraEn: string
 }
 

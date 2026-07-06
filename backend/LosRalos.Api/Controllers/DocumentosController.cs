@@ -11,7 +11,7 @@ namespace LosRalos.Api.Controllers;
 public class DocumentosController(IDocumentoService service) : ControllerBase
 {
     [HttpGet("{id:guid}/file")]
-    [Authorize(Roles = "Admin,Visor")]
+    [Authorize(Roles = "Admin,Administrativo")]
     [ProducesResponseType(200)]
     [ProducesResponseType(404)]
     public async Task<IActionResult> GetFile(Guid id, [FromQuery] bool download, CancellationToken ct)
@@ -30,7 +30,7 @@ public class DocumentosController(IDocumentoService service) : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Administrativo")]
     [ProducesResponseType(204)]
     [ProducesResponseType(404)]
     public async Task<IActionResult> Delete(Guid id, CancellationToken ct)

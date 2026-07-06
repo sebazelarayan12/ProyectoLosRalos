@@ -1,6 +1,6 @@
 import type { AxiosInstance } from 'axios'
 
-export type RolUsuario = 'Admin' | 'Visor'
+export type RolUsuario = 'Admin' | 'Administrativo'
 
 export type Usuario = {
   id: string

@@ -7,7 +7,7 @@ const payload: CrearUsuarioPayload = {
   nombre: 'Juan Perez',
   email: 'juan@test.com',
   password: 'password123',
-  rol: 'Visor',
+  rol: 'Administrativo',
 }
 
 describe('crearUsuario', () => {

@@ -55,7 +55,7 @@ function mockearGetProfesional() {
   })
 }
 
-function setUsuario(rol: 'Admin' | 'Visor') {
+function setUsuario(rol: 'Admin' | 'Administrativo') {
   localStorage.setItem('auth_token', 'fake-token')
   localStorage.setItem('auth_usuario', JSON.stringify({ nombre: 'Ana', rol }))
 }
@@ -83,7 +83,7 @@ describe('PerfilProfesionalPage', () => {
   })
 
   test('muestra datos del profesional y sus documentos', async () => {
-    setUsuario('Visor')
+    setUsuario('Administrativo')
     mockearGetProfesional()
 
     renderPage()
@@ -113,14 +113,13 @@ describe('PerfilProfesionalPage', () => {
     expect(await screen.findByText('Pantalla Editar')).toBeInTheDocument()
   })
 
-  test('boton Editar no aparece para visor', async () => {
-    setUsuario('Visor')
+  test('boton Editar tambien visible para administrativo', async () => {
+    setUsuario('Administrativo')
     mockearGetProfesional()
 
     renderPage()
 
-    await screen.findByText('Perez, Sara Gisela')
-    expect(screen.queryByRole('button', { name: /editar/i })).not.toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: /editar/i })).toBeInTheDocument()
   })
 
   test('zona de subir documento visible solo para admin', async () => {
@@ -132,17 +131,16 @@ describe('PerfilProfesionalPage', () => {
     expect(await screen.findByLabelText(/tipo de documento/i)).toBeInTheDocument()
   })
 
-  test('zona de subir documento no aparece para visor', async () => {
-    setUsuario('Visor')
+  test('zona de subir documento tambien visible para administrativo', async () => {
+    setUsuario('Administrativo')
     mockearGetProfesional()
 
     renderPage()
 
-    await screen.findByText('Perez, Sara Gisela')
-    expect(screen.queryByLabelText(/tipo de documento/i)).not.toBeInTheDocument()
+    expect(await screen.findByLabelText(/tipo de documento/i)).toBeInTheDocument()
   })
 
-  test('boton Eliminar del visor de documentos aparece solo para admin', async () => {
+  test('boton Eliminar del visor de documentos aparece para admin y administrativo', async () => {
     setUsuario('Admin')
     vi.mocked(api.get).mockImplementation((url: string) => {
       if (url.includes('/file')) {
@@ -160,7 +158,7 @@ describe('PerfilProfesionalPage', () => {
   })
 
   test('muestra mensaje de no encontrado en 404', async () => {
-    setUsuario('Visor')
+    setUsuario('Administrativo')
     vi.mocked(api.get).mockRejectedValue({ response: { status: 404 } })
 
     renderPage()

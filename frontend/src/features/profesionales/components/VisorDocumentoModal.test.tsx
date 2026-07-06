@@ -116,12 +116,12 @@ describe('VisorDocumentoModal', () => {
     expect(link).toHaveAttribute('download', 'dni.jpg')
   })
 
-  test('no muestra boton Eliminar si esAdmin es false', () => {
+  test('no muestra boton Eliminar si puedeEscribir es false', () => {
     const blob = new Blob(['x'], { type: 'image/jpeg' })
     vi.mocked(useArchivoDocumento).mockReturnValue({ data: blob, isLoading: false, isError: false } as never)
 
     render(
-      <VisorDocumentoModal documento={documentoImagen} open={true} onOpenChange={vi.fn()} esAdmin={false} />,
+      <VisorDocumentoModal documento={documentoImagen} open={true} onOpenChange={vi.fn()} puedeEscribir={false} />,
       { wrapper },
     )
 
@@ -140,7 +140,7 @@ describe('VisorDocumentoModal', () => {
         documento={documentoImagen}
         open={true}
         onOpenChange={vi.fn()}
-        esAdmin={true}
+        puedeEscribir={true}
         onEliminado={onEliminado}
       />,
       { wrapper },
@@ -166,7 +166,7 @@ describe('VisorDocumentoModal', () => {
         documento={documentoImagen}
         open={true}
         onOpenChange={onOpenChange}
-        esAdmin={true}
+        puedeEscribir={true}
       />,
       { wrapper },
     )

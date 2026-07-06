@@ -79,7 +79,7 @@ export function BusquedaProfesionalesPage() {
         </Field>
         <div className="flex items-end gap-2">
           <FiltrosProfesionales filtros={filtros} onFiltrosChange={handleFiltrosChange} />
-          {usuario?.rol === 'Admin' ? (
+          {usuario?.rol === 'Admin' || usuario?.rol === 'Administrativo' ? (
             <Button onClick={() => navigate('/profesionales/nuevo')}>
               <Plus />
               Nuevo profesional

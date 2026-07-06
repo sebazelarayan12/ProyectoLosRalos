@@ -10,7 +10,7 @@ namespace LosRalos.Api.Controllers;
 public class TiposDocumentoController(IDocumentoService service) : ControllerBase
 {
     [HttpGet]
-    [Authorize(Roles = "Admin,Visor")]
+    [Authorize(Roles = "Admin,Administrativo")]
     [ProducesResponseType(200)]
     public async Task<IActionResult> List(CancellationToken ct)
     {

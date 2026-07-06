@@ -48,11 +48,11 @@ describe('AuthContext', () => {
 
   test('restaura token y usuario desde localStorage al montar', () => {
     localStorage.setItem('auth_token', 'existing-token')
-    localStorage.setItem('auth_usuario', JSON.stringify({ nombre: 'Beto', rol: 'Visor' }))
+    localStorage.setItem('auth_usuario', JSON.stringify({ nombre: 'Beto', rol: 'Administrativo' }))
 
     const { result } = renderHook(() => useAuth(), { wrapper })
 
     expect(result.current.token).toBe('existing-token')
-    expect(result.current.usuario).toEqual({ nombre: 'Beto', rol: 'Visor' })
+    expect(result.current.usuario).toEqual({ nombre: 'Beto', rol: 'Administrativo' })
   })
 })

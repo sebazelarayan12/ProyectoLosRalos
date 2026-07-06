@@ -18,7 +18,7 @@ export function PerfilProfesionalPage() {
   const { usuario } = useAuth()
   const { data: profesional, isLoading, isError, error } = useProfesionalDetalle(id!)
   const [documentoVisor, setDocumentoVisor] = useState<DocumentoResumen | null>(null)
-  const esAdmin = usuario?.rol === 'Admin'
+  const puedeEscribir = usuario?.rol === 'Admin' || usuario?.rol === 'Administrativo'
   const invalidarProfesional = () => queryClient.invalidateQueries({ queryKey: ['profesional', id] })
 
   if (isLoading) {
@@ -44,7 +44,7 @@ export function PerfilProfesionalPage() {
         apellido={profesional.apellido}
         nombre={profesional.nombre}
         nroExpediente={profesional.nroExpediente}
-        esAdmin={esAdmin}
+        puedeEscribir={puedeEscribir}
         onEditar={() => navigate(`/profesionales/${id}/editar`)}
         tipo={profesional.tipo}
         activo={profesional.activo}
@@ -53,7 +53,7 @@ export function PerfilProfesionalPage() {
       <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-[minmax(0,340px)_minmax(0,1fr)] md:gap-6">
         <DatosProfesional profesional={profesional} />
         <div className="flex flex-col gap-4">
-          {esAdmin ? (
+          {puedeEscribir ? (
             <SubirDocumentoDropzone profesionalId={id!} onSubido={invalidarProfesional} />
           ) : null}
           <GridDocumentos documentos={profesional.documentos} onVerDocumento={setDocumentoVisor} />
@@ -66,7 +66,7 @@ export function PerfilProfesionalPage() {
         onOpenChange={(open) => {
           if (!open) setDocumentoVisor(null)
         }}
-        esAdmin={esAdmin}
+        puedeEscribir={puedeEscribir}
         onEliminado={invalidarProfesional}
       />
     </div>

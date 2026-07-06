@@ -34,7 +34,7 @@ export function AppLayout() {
             <div className="hidden flex-col text-right leading-[1.1] sm:flex">
               <span className="text-[12.5px] font-semibold">{usuario.nombre}</span>
               <span className="text-[11px] text-muted-foreground">
-                {usuario.rol === 'Admin' ? 'Administrador' : 'Visor'}
+                {usuario.rol === 'Admin' ? 'Administrador' : 'Administrativo'}
               </span>
             </div>
             <div className="flex size-7 items-center justify-center rounded-full bg-accent text-[11px] font-semibold text-accent-foreground">

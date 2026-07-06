@@ -35,7 +35,7 @@ public class AuthServiceTests
         Nombre = "Juan Test",
         Email = "juan@hospital.com",
         PasswordHash = "hash-irrelevante-en-unit-test",
-        Rol = RolUsuario.Visor,
+        Rol = RolUsuario.Administrativo,
         Activo = true,
         FechaCreacion = DateTime.UtcNow,
         FechaActualizacion = DateTime.UtcNow
@@ -54,7 +54,7 @@ public class AuthServiceTests
 
         resultado.Token.Should().Be("token-generado");
         resultado.Nombre.Should().Be(usuario.Nombre);
-        resultado.Rol.Should().Be("Visor");
+        resultado.Rol.Should().Be("Administrativo");
 
         await _auditRepo.Received(1).AddAsync(
             Arg.Is<AuditLog>(a => a.Accion == AccionAudit.Login && a.UsuarioId == usuario.Id));

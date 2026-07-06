@@ -3,7 +3,7 @@ import { AUTH_TOKEN_KEY, AUTH_USUARIO_KEY } from '@/lib/authStorage'
 
 export type Usuario = {
   nombre: string
-  rol: 'Admin' | 'Visor'
+  rol: 'Admin' | 'Administrativo'
 }
 
 type AuthContextValue = {

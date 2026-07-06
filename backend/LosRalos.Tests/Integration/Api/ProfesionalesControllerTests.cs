@@ -26,7 +26,7 @@ public class ProfesionalesControllerTests : IAsyncLifetime
 
     private WebApplicationFactory<Program> _factory = null!;
     private HttpClient _adminClient = null!;
-    private HttpClient _visorClient = null!;
+    private HttpClient _administrativoClient = null!;
     private HttpClient _anonClient = null!;
 
     private static readonly JsonSerializerOptions JsonOpts = new(JsonSerializerDefaults.Web);
@@ -62,13 +62,13 @@ public class ProfesionalesControllerTests : IAsyncLifetime
         _anonClient = _factory.CreateClient();
         await SeedAsync();
         _adminClient = await BuildClientAsync("admin@test.com", "Test1234");
-        _visorClient = await BuildClientAsync("visor@test.com", "Test1234");
+        _administrativoClient = await BuildClientAsync("administrativo@test.com", "Test1234");
     }
 
     public async Task DisposeAsync()
     {
         _adminClient.Dispose();
-        _visorClient.Dispose();
+        _administrativoClient.Dispose();
         _anonClient.Dispose();
         await _factory.DisposeAsync();
         await _postgres.DisposeAsync();
@@ -96,10 +96,10 @@ public class ProfesionalesControllerTests : IAsyncLifetime
             new Usuario
             {
                 Id = Guid.NewGuid(),
-                Nombre = "Visor Test",
-                Email = "visor@test.com",
+                Nombre = "Administrativo Test",
+                Email = "administrativo@test.com",
                 PasswordHash = hasher.Hash("Test1234"),
-                Rol = RolUsuario.Visor,
+                Rol = RolUsuario.Administrativo,
                 Activo = true,
                 FechaCreacion = DateTime.UtcNow,
                 FechaActualizacion = DateTime.UtcNow
@@ -146,9 +146,9 @@ public class ProfesionalesControllerTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Search_VisorToken_Retorna200()
+    public async Task Search_AdministrativoToken_Retorna200()
     {
-        var resp = await _visorClient.GetAsync("/api/v1/profesionales");
+        var resp = await _administrativoClient.GetAsync("/api/v1/profesionales");
         resp.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
@@ -166,10 +166,11 @@ public class ProfesionalesControllerTests : IAsyncLifetime
     // --- POST /api/v1/profesionales ---
 
     [Fact]
-    public async Task Create_VisorToken_Retorna403()
+    public async Task Create_AdministrativoToken_Retorna201()
     {
-        var resp = await _visorClient.PostAsJsonAsync("/api/v1/profesionales", BuildRequest());
-        resp.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        var resp = await _administrativoClient.PostAsJsonAsync("/api/v1/profesionales",
+            BuildRequest(apellido: "Administrativo Create", dni: "10.000.001", cuil: "20-10000001-0"));
+        resp.StatusCode.Should().Be(HttpStatusCode.Created);
     }
 
     [Fact]
@@ -257,13 +258,13 @@ public class ProfesionalesControllerTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task GetById_VisorPuedeVer()
+    public async Task GetById_AdministrativoPuedeVer()
     {
         var created = await _adminClient.PostAsJsonAsync("/api/v1/profesionales",
             BuildRequest(apellido: "Diaz", dni: "33.333.333", cuil: "20-33333333-0"));
         var detalle = await created.Content.ReadFromJsonAsync<ProfesionalDetalleResponse>();
 
-        var resp = await _visorClient.GetAsync($"/api/v1/profesionales/{detalle!.Id}");
+        var resp = await _administrativoClient.GetAsync($"/api/v1/profesionales/{detalle!.Id}");
         resp.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
@@ -324,16 +325,16 @@ public class ProfesionalesControllerTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Update_VisorToken_Retorna403()
+    public async Task Update_AdministrativoToken_Retorna200()
     {
         var created = await _adminClient.PostAsJsonAsync("/api/v1/profesionales",
             BuildRequest(apellido: "Perez", dni: "55.555.555", cuil: "20-55555555-0"));
         var original = await created.Content.ReadFromJsonAsync<ProfesionalDetalleResponse>();
 
-        var resp = await _visorClient.PatchAsJsonAsync($"/api/v1/profesionales/{original!.Id}",
+        var resp = await _administrativoClient.PatchAsJsonAsync($"/api/v1/profesionales/{original!.Id}",
             new PatchProfesionalRequest { Funcion = "Otro" });
 
-        resp.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        resp.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     // --- DELETE /api/v1/profesionales/{id} ---
@@ -368,13 +369,13 @@ public class ProfesionalesControllerTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Deactivate_VisorToken_Retorna403()
+    public async Task Deactivate_AdministrativoToken_Retorna204()
     {
         var created = await _adminClient.PostAsJsonAsync("/api/v1/profesionales",
             BuildRequest(apellido: "Luna", dni: "88.888.888", cuil: "20-88888888-0"));
         var detalle = await created.Content.ReadFromJsonAsync<ProfesionalDetalleResponse>();
 
-        var resp = await _visorClient.DeleteAsync($"/api/v1/profesionales/{detalle!.Id}");
-        resp.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        var resp = await _administrativoClient.DeleteAsync($"/api/v1/profesionales/{detalle!.Id}");
+        resp.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 }

@@ -11,7 +11,7 @@ public class UsuarioConfiguration : IEntityTypeConfiguration<Usuario>
     {
         builder.ToTable("usuarios", t =>
         {
-            t.HasCheckConstraint("chk_usuario_rol", "\"Rol\" IN ('Admin', 'Visor')");
+            t.HasCheckConstraint("chk_usuario_rol", "\"Rol\" IN ('Admin', 'Administrativo')");
         });
 
         builder.HasKey(u => u.Id);

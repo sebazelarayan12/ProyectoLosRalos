@@ -26,7 +26,7 @@ public class DocumentosControllerTests : IAsyncLifetime
 
     private WebApplicationFactory<Program> _factory = null!;
     private HttpClient _adminClient = null!;
-    private HttpClient _visorClient = null!;
+    private HttpClient _administrativoClient = null!;
     private HttpClient _anonClient = null!;
 
     private static readonly byte[] JpegBytes = [0xFF, 0xD8, 0xFF, 0x00, 0x01, 0x02, 0x03];
@@ -65,13 +65,13 @@ public class DocumentosControllerTests : IAsyncLifetime
         _anonClient = _factory.CreateClient();
         await SeedAsync();
         _adminClient = await BuildClientAsync("admin@test.com", "Test1234");
-        _visorClient = await BuildClientAsync("visor@test.com", "Test1234");
+        _administrativoClient = await BuildClientAsync("administrativo@test.com", "Test1234");
     }
 
     public async Task DisposeAsync()
     {
         _adminClient.Dispose();
-        _visorClient.Dispose();
+        _administrativoClient.Dispose();
         _anonClient.Dispose();
         await _factory.DisposeAsync();
         await _postgres.DisposeAsync();
@@ -99,10 +99,10 @@ public class DocumentosControllerTests : IAsyncLifetime
             new Usuario
             {
                 Id = Guid.NewGuid(),
-                Nombre = "Visor Test",
-                Email = "visor@test.com",
+                Nombre = "Administrativo Test",
+                Email = "administrativo@test.com",
                 PasswordHash = hasher.Hash("Test1234"),
-                Rol = RolUsuario.Visor,
+                Rol = RolUsuario.Administrativo,
                 Activo = true,
                 FechaCreacion = DateTime.UtcNow,
                 FechaActualizacion = DateTime.UtcNow
@@ -171,15 +171,15 @@ public class DocumentosControllerTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Subir_VisorToken_Retorna403()
+    public async Task Subir_AdministrativoToken_Retorna201()
     {
         var profesionalId = await CrearProfesionalAsync("Salazar", "10.000.002", "20-10000002-0");
 
-        var resp = await _visorClient.PostAsync(
+        var resp = await _administrativoClient.PostAsync(
             $"/api/v1/profesionales/{profesionalId}/documentos",
             BuildUpload(JpegBytes, "foto.jpg", "Titulo"));
 
-        resp.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        resp.StatusCode.Should().Be(HttpStatusCode.Created);
     }
 
     [Fact]
@@ -289,7 +289,7 @@ public class DocumentosControllerTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Descargar_VisorPuedeVer()
+    public async Task Descargar_AdministrativoPuedeVer()
     {
         var profesionalId = await CrearProfesionalAsync("Aguero", "10.000.008", "20-10000008-0");
         var upload = await _adminClient.PostAsync(
@@ -298,7 +298,7 @@ public class DocumentosControllerTests : IAsyncLifetime
         var doc = await upload.Content.ReadFromJsonAsync<JsonElement>();
         var docId = doc.GetProperty("id").GetGuid();
 
-        var resp = await _visorClient.GetAsync($"/api/v1/documentos/{docId}/file");
+        var resp = await _administrativoClient.GetAsync($"/api/v1/documentos/{docId}/file");
         resp.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
@@ -322,7 +322,7 @@ public class DocumentosControllerTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Eliminar_VisorToken_Retorna403()
+    public async Task Eliminar_AdministrativoToken_Retorna204()
     {
         var profesionalId = await CrearProfesionalAsync("Paz", "10.000.010", "20-10000010-0");
         var upload = await _adminClient.PostAsync(
@@ -331,8 +331,8 @@ public class DocumentosControllerTests : IAsyncLifetime
         var doc = await upload.Content.ReadFromJsonAsync<JsonElement>();
         var docId = doc.GetProperty("id").GetGuid();
 
-        var resp = await _visorClient.DeleteAsync($"/api/v1/documentos/{docId}");
-        resp.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        var resp = await _administrativoClient.DeleteAsync($"/api/v1/documentos/{docId}");
+        resp.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 
     // --- GET /api/v1/tipos-documento ---

@@ -16,14 +16,14 @@ import type { Usuario } from '../api/buscarUsuarios'
 const editarUsuarioSchema = z.object({
   nombre: z.string().min(1, 'Nombre requerido'),
   email: z.string().email('Email invalido'),
-  rol: z.enum(['Admin', 'Visor'], { message: 'Rol requerido' }),
+  rol: z.enum(['Admin', 'Administrativo'], { message: 'Rol requerido' }),
 })
 
 type EditarUsuarioValues = z.infer<typeof editarUsuarioSchema>
 
 const opcionesRol = [
   { value: 'Admin', label: 'Admin' },
-  { value: 'Visor', label: 'Visor' },
+  { value: 'Administrativo', label: 'Administrativo' },
 ]
 
 type EditarUsuarioDialogProps = {

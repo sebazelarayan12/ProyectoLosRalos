@@ -26,7 +26,7 @@ public class UsuariosControllerTests : IAsyncLifetime
 
     private WebApplicationFactory<Program> _factory = null!;
     private HttpClient _adminClient = null!;
-    private HttpClient _visorClient = null!;
+    private HttpClient _administrativoClient = null!;
     private HttpClient _anonClient = null!;
     private Guid _adminId;
 
@@ -63,13 +63,13 @@ public class UsuariosControllerTests : IAsyncLifetime
         _anonClient = _factory.CreateClient();
         await SeedAsync();
         _adminClient = await BuildClientAsync("admin@test.com", "Test1234");
-        _visorClient = await BuildClientAsync("visor@test.com", "Test1234");
+        _administrativoClient = await BuildClientAsync("administrativo@test.com", "Test1234");
     }
 
     public async Task DisposeAsync()
     {
         _adminClient.Dispose();
-        _visorClient.Dispose();
+        _administrativoClient.Dispose();
         _anonClient.Dispose();
         await _factory.DisposeAsync();
         await _postgres.DisposeAsync();
@@ -99,10 +99,10 @@ public class UsuariosControllerTests : IAsyncLifetime
             new Usuario
             {
                 Id = Guid.NewGuid(),
-                Nombre = "Visor Test",
-                Email = "visor@test.com",
+                Nombre = "Administrativo Test",
+                Email = "administrativo@test.com",
                 PasswordHash = hasher.Hash("Test1234"),
-                Rol = RolUsuario.Visor,
+                Rol = RolUsuario.Administrativo,
                 Activo = true,
                 FechaCreacion = DateTime.UtcNow,
                 FechaActualizacion = DateTime.UtcNow
@@ -120,7 +120,7 @@ public class UsuariosControllerTests : IAsyncLifetime
         return client;
     }
 
-    private static UsuarioRequest BuildRequest(string email = "nuevo@test.com", RolUsuario rol = RolUsuario.Visor)
+    private static UsuarioRequest BuildRequest(string email = "nuevo@test.com", RolUsuario rol = RolUsuario.Administrativo)
         => new()
         {
             Nombre = "Usuario Nuevo",
@@ -139,9 +139,9 @@ public class UsuariosControllerTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Search_VisorToken_Retorna403()
+    public async Task Search_AdministrativoToken_Retorna403()
     {
-        var resp = await _visorClient.GetAsync("/api/v1/usuarios");
+        var resp = await _administrativoClient.GetAsync("/api/v1/usuarios");
         resp.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 
@@ -158,9 +158,9 @@ public class UsuariosControllerTests : IAsyncLifetime
     // --- POST /api/v1/usuarios ---
 
     [Fact]
-    public async Task Create_VisorToken_Retorna403()
+    public async Task Create_AdministrativoToken_Retorna403()
     {
-        var resp = await _visorClient.PostAsJsonAsync("/api/v1/usuarios", BuildRequest());
+        var resp = await _administrativoClient.PostAsJsonAsync("/api/v1/usuarios", BuildRequest());
         resp.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 
@@ -173,7 +173,7 @@ public class UsuariosControllerTests : IAsyncLifetime
 
         var body = await resp.Content.ReadFromJsonAsync<UsuarioResponse>();
         body!.Email.Should().Be("creado@test.com");
-        body.Rol.Should().Be(nameof(RolUsuario.Visor));
+        body.Rol.Should().Be(nameof(RolUsuario.Administrativo));
     }
 
     [Fact]
@@ -226,7 +226,7 @@ public class UsuariosControllerTests : IAsyncLifetime
     [Fact]
     public async Task Update_CambiarPropioRol_Retorna403()
     {
-        var resp = await _adminClient.PatchAsJsonAsync($"/api/v1/usuarios/{_adminId}", new { rol = "Visor" });
+        var resp = await _adminClient.PatchAsJsonAsync($"/api/v1/usuarios/{_adminId}", new { rol = "Administrativo" });
 
         resp.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }

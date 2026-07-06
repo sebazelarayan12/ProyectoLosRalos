@@ -43,7 +43,7 @@ describe('CrearUsuarioPage', () => {
     await user.type(screen.getByLabelText(/^email$/i), 'juan@test.com')
     await user.type(screen.getByLabelText(/password temporal/i), 'password123')
     await user.click(screen.getByRole('combobox', { name: /^rol$/i }))
-    await user.click(await screen.findByRole('option', { name: 'Visor' }))
+    await user.click(await screen.findByRole('option', { name: 'Administrativo' }))
 
     await user.click(screen.getByRole('button', { name: /crear usuario/i }))
 
@@ -52,7 +52,7 @@ describe('CrearUsuarioPage', () => {
       nombre: 'Juan Perez',
       email: 'juan@test.com',
       password: 'password123',
-      rol: 'Visor',
+      rol: 'Administrativo',
     })
     expect(toast.success).toHaveBeenCalled()
   })
@@ -66,7 +66,7 @@ describe('CrearUsuarioPage', () => {
     await user.type(screen.getByLabelText(/^email$/i), 'juan@test.com')
     await user.type(screen.getByLabelText(/password temporal/i), 'password123')
     await user.click(screen.getByRole('combobox', { name: /^rol$/i }))
-    await user.click(await screen.findByRole('option', { name: 'Visor' }))
+    await user.click(await screen.findByRole('option', { name: 'Administrativo' }))
 
     await user.click(screen.getByRole('button', { name: /crear usuario/i }))
 

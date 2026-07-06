@@ -25,7 +25,7 @@ type VisorDocumentoModalProps = {
   documento: DocumentoResumen | null
   open: boolean
   onOpenChange: (open: boolean) => void
-  esAdmin?: boolean
+  puedeEscribir?: boolean
   onEliminado?: () => void
 }
 
@@ -33,7 +33,7 @@ export function VisorDocumentoModal({
   documento,
   open,
   onOpenChange,
-  esAdmin = false,
+  puedeEscribir = false,
   onEliminado,
 }: VisorDocumentoModalProps) {
   const isMobile = useMediaQuery('(max-width: 768px)')
@@ -109,7 +109,7 @@ export function VisorDocumentoModal({
         </div>
 
         <DialogFooter className="mx-0 mb-0 border-t px-4.5 py-3.5 sm:justify-between">
-          {esAdmin ? (
+          {puedeEscribir ? (
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="destructive">

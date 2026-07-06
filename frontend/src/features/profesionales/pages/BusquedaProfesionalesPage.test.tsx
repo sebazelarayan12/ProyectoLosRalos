@@ -28,7 +28,7 @@ const respuestaConResultados = {
   cursor: null,
 }
 
-function setUsuario(rol: 'Admin' | 'Visor') {
+function setUsuario(rol: 'Admin' | 'Administrativo') {
   localStorage.setItem('auth_token', 'fake-token')
   localStorage.setItem('auth_usuario', JSON.stringify({ nombre: 'Ana', rol }))
 }
@@ -56,7 +56,7 @@ describe('BusquedaProfesionalesPage', () => {
   })
 
   test('muestra los resultados devueltos por la API', async () => {
-    setUsuario('Visor')
+    setUsuario('Administrativo')
     vi.mocked(api.get).mockResolvedValue({ data: respuestaConResultados })
 
     renderPage()
@@ -65,7 +65,7 @@ describe('BusquedaProfesionalesPage', () => {
   })
 
   test('sin resultados, muestra el mensaje de vacio', async () => {
-    setUsuario('Visor')
+    setUsuario('Administrativo')
     vi.mocked(api.get).mockResolvedValue({
       data: { items: [], porPagina: 20, hasNextPage: false, cursor: null },
     })
@@ -86,17 +86,17 @@ describe('BusquedaProfesionalesPage', () => {
     expect(screen.getByRole('button', { name: /nuevo profesional/i })).toBeInTheDocument()
   })
 
-  test('boton Nuevo profesional no aparece para visor', async () => {
-    setUsuario('Visor')
+  test('boton Nuevo profesional tambien visible para administrativo', async () => {
+    setUsuario('Administrativo')
     vi.mocked(api.get).mockResolvedValue({ data: respuestaConResultados })
     renderPage()
     await screen.findByText('Perez, Ana')
 
-    expect(screen.queryByRole('button', { name: /nuevo profesional/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /nuevo profesional/i })).toBeInTheDocument()
   })
 
   test('escribir en el buscador filtra por apellido o expediente tras el debounce', async () => {
-    setUsuario('Visor')
+    setUsuario('Administrativo')
     vi.mocked(api.get).mockResolvedValue({ data: respuestaConResultados })
     const user = userEvent.setup()
     renderPage()
@@ -113,7 +113,7 @@ describe('BusquedaProfesionalesPage', () => {
   })
 
   test('click en Ver legajo navega al perfil del profesional', async () => {
-    setUsuario('Visor')
+    setUsuario('Administrativo')
     vi.mocked(api.get).mockResolvedValue({ data: respuestaConResultados })
     const user = userEvent.setup()
     renderPage()
@@ -125,7 +125,7 @@ describe('BusquedaProfesionalesPage', () => {
   })
 
   test('elegir un filtro de tipo lo manda como param y resetea la paginacion', async () => {
-    setUsuario('Visor')
+    setUsuario('Administrativo')
     vi.mocked(api.get).mockResolvedValue({ data: respuestaConResultados })
     const user = userEvent.setup()
     renderPage()
@@ -146,7 +146,7 @@ describe('BusquedaProfesionalesPage', () => {
   })
 
   test('Siguiente pide la proxima pagina con el cursor devuelto', async () => {
-    setUsuario('Visor')
+    setUsuario('Administrativo')
     vi.mocked(api.get).mockResolvedValue({
       data: { ...respuestaConResultados, hasNextPage: true, cursor: 'cursor-pagina-2' },
     })
@@ -165,7 +165,7 @@ describe('BusquedaProfesionalesPage', () => {
   })
 
   test('Anterior esta deshabilitado en la primera pagina', async () => {
-    setUsuario('Visor')
+    setUsuario('Administrativo')
     vi.mocked(api.get).mockResolvedValue({ data: respuestaConResultados })
     renderPage()
     await screen.findByText('Perez, Ana')

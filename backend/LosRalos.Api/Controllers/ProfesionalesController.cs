@@ -13,7 +13,7 @@ namespace LosRalos.Api.Controllers;
 public class ProfesionalesController(IProfesionalService service, IDocumentoService documentoService) : ControllerBase
 {
     [HttpGet]
-    [Authorize(Roles = "Admin,Visor")]
+    [Authorize(Roles = "Admin,Administrativo")]
     [ProducesResponseType(200)]
     public async Task<IActionResult> Search(
         [FromQuery] string? busqueda,
@@ -29,7 +29,7 @@ public class ProfesionalesController(IProfesionalService service, IDocumentoServ
     }
 
     [HttpGet("{id:guid}")]
-    [Authorize(Roles = "Admin,Visor")]
+    [Authorize(Roles = "Admin,Administrativo")]
     [ProducesResponseType(200)]
     [ProducesResponseType(404)]
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
@@ -44,7 +44,7 @@ public class ProfesionalesController(IProfesionalService service, IDocumentoServ
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Administrativo")]
     [ProducesResponseType(201)]
     [ProducesResponseType(400)]
     [ProducesResponseType(409)]
@@ -61,7 +61,7 @@ public class ProfesionalesController(IProfesionalService service, IDocumentoServ
     }
 
     [HttpPatch("{id:guid}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Administrativo")]
     [ProducesResponseType(200)]
     [ProducesResponseType(400)]
     [ProducesResponseType(404)]
@@ -78,7 +78,7 @@ public class ProfesionalesController(IProfesionalService service, IDocumentoServ
     }
 
     [HttpDelete("{id:guid}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Administrativo")]
     [ProducesResponseType(204)]
     [ProducesResponseType(404)]
     public async Task<IActionResult> Deactivate(Guid id, CancellationToken ct)
@@ -93,7 +93,7 @@ public class ProfesionalesController(IProfesionalService service, IDocumentoServ
     }
 
     [HttpPost("{id:guid}/documentos")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Administrativo")]
     [ProducesResponseType(201)]
     [ProducesResponseType(400)]
     [ProducesResponseType(404)]

@@ -25,7 +25,7 @@ public class UsuarioServiceTests
     private static readonly Guid AdminId = Guid.NewGuid();
     private const string AdminNombre = "Admin Test";
 
-    private static Usuario UsuarioActivo(RolUsuario rol = RolUsuario.Visor) => new()
+    private static Usuario UsuarioActivo(RolUsuario rol = RolUsuario.Administrativo) => new()
     {
         Id = Guid.NewGuid(),
         Nombre = "Juan Perez",
@@ -42,7 +42,7 @@ public class UsuarioServiceTests
         Nombre = "Maria Gomez",
         Email = "maria.gomez@example.com",
         Password = "password123",
-        Rol = RolUsuario.Visor
+        Rol = RolUsuario.Administrativo
     };
 
     [Fact]
@@ -68,7 +68,7 @@ public class UsuarioServiceTests
 
         result.Nombre.Should().Be(req.Nombre);
         result.Email.Should().Be(req.Email);
-        result.Rol.Should().Be(nameof(RolUsuario.Visor));
+        result.Rol.Should().Be(nameof(RolUsuario.Administrativo));
 
         await _repo.Received(1).AddAsync(
             Arg.Is<Usuario>(u => u.Email == req.Email && u.PasswordHash == "hash-generado"),
@@ -125,7 +125,7 @@ public class UsuarioServiceTests
     [Fact]
     public async Task Update_CambioDeRol_ActualizaYRegistraCambiarRol()
     {
-        var usuario = UsuarioActivo(RolUsuario.Visor);
+        var usuario = UsuarioActivo(RolUsuario.Administrativo);
         var req = new PatchUsuarioRequest { Rol = RolUsuario.Admin };
 
         _repo.GetByIdAsync(usuario.Id, Arg.Any<CancellationToken>()).Returns(usuario);
@@ -144,7 +144,7 @@ public class UsuarioServiceTests
     {
         var usuario = UsuarioActivo(RolUsuario.Admin);
         usuario.Id = AdminId;
-        var req = new PatchUsuarioRequest { Rol = RolUsuario.Visor };
+        var req = new PatchUsuarioRequest { Rol = RolUsuario.Administrativo };
 
         _repo.GetByIdAsync(usuario.Id, Arg.Any<CancellationToken>()).Returns(usuario);
 
@@ -158,7 +158,7 @@ public class UsuarioServiceTests
     public async Task Update_CambiarRolUltimoAdminActivo_LanzaForbiddenException()
     {
         var usuario = UsuarioActivo(RolUsuario.Admin);
-        var req = new PatchUsuarioRequest { Rol = RolUsuario.Visor };
+        var req = new PatchUsuarioRequest { Rol = RolUsuario.Administrativo };
 
         _repo.GetByIdAsync(usuario.Id, Arg.Any<CancellationToken>()).Returns(usuario);
         _repo.CountActiveAdminsAsync(Arg.Any<CancellationToken>()).Returns(1);

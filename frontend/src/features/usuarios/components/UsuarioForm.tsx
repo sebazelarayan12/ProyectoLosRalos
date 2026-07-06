@@ -12,7 +12,7 @@ const usuarioSchema = z.object({
   nombre: z.string().min(1, 'Nombre requerido'),
   email: z.string().email('Email invalido'),
   password: z.string().regex(/^(?=.*\d).{8,}$/, 'Minimo 8 caracteres y al menos 1 numero'),
-  rol: z.enum(['Admin', 'Visor'], { message: 'Rol requerido' }),
+  rol: z.enum(['Admin', 'Administrativo'], { message: 'Rol requerido' }),
 })
 
 export type UsuarioFormValues = z.infer<typeof usuarioSchema>
@@ -26,7 +26,7 @@ const valoresPorDefecto: UsuarioFormValues = {
 
 const opcionesRol = [
   { value: 'Admin', label: 'Admin' },
-  { value: 'Visor', label: 'Visor' },
+  { value: 'Administrativo', label: 'Administrativo' },
 ]
 
 type UsuarioFormProps = {

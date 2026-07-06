@@ -7,7 +7,7 @@ type PerfilTopbarProps = {
   apellido: string
   nombre: string
   nroExpediente: string | null
-  esAdmin: boolean
+  puedeEscribir: boolean
   onEditar: () => void
   tipo?: string
   activo?: boolean
@@ -17,7 +17,7 @@ export function PerfilTopbar({
   apellido,
   nombre,
   nroExpediente,
-  esAdmin,
+  puedeEscribir,
   onEditar,
   tipo,
   activo,
@@ -52,7 +52,7 @@ export function PerfilTopbar({
           </div>
         ) : null}
       </div>
-      {esAdmin ? (
+      {puedeEscribir ? (
         <Button onClick={onEditar}>
           <Pencil />
           Editar

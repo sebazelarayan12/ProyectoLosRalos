@@ -12,7 +12,7 @@ describe('PerfilTopbar', () => {
           apellido="Perez"
           nombre="Ana"
           nroExpediente="1/2020"
-          esAdmin={false}
+          puedeEscribir={false}
           onEditar={vi.fn()}
         />
       </MemoryRouter>,
@@ -22,14 +22,14 @@ describe('PerfilTopbar', () => {
     expect(screen.getByText('1/2020')).toBeInTheDocument()
   })
 
-  test('muestra boton Editar solo si esAdmin es true', () => {
+  test('muestra boton Editar solo si puedeEscribir es true', () => {
     const { rerender } = render(
       <MemoryRouter>
         <PerfilTopbar
           apellido="Perez"
           nombre="Ana"
           nroExpediente="1/2020"
-          esAdmin={false}
+          puedeEscribir={false}
           onEditar={vi.fn()}
         />
       </MemoryRouter>,
@@ -42,7 +42,7 @@ describe('PerfilTopbar', () => {
           apellido="Perez"
           nombre="Ana"
           nroExpediente="1/2020"
-          esAdmin={true}
+          puedeEscribir={true}
           onEditar={vi.fn()}
         />
       </MemoryRouter>,
@@ -59,7 +59,7 @@ describe('PerfilTopbar', () => {
           apellido="Perez"
           nombre="Ana"
           nroExpediente="1/2020"
-          esAdmin={true}
+          puedeEscribir={true}
           onEditar={onEditar}
         />
       </MemoryRouter>,

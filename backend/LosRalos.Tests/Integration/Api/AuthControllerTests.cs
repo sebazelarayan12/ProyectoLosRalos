@@ -89,7 +89,7 @@ public class AuthControllerTests : IAsyncLifetime
             Nombre = "Usuario Inactivo",
             Email = "inactivo@test.com",
             PasswordHash = hasher.Hash("Test1234"),
-            Rol = RolUsuario.Visor,
+            Rol = RolUsuario.Administrativo,
             Activo = false,
             FechaCreacion = DateTime.UtcNow,
             FechaActualizacion = DateTime.UtcNow
