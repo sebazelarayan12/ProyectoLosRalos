@@ -12,6 +12,8 @@ docs/
 .env
 .env.local
 !.env.example
+backend/LosRalos.Api/appsettings.Development.json
+!backend/LosRalos.Api/appsettings.Development.json.example
 
 # EF Core
 *.db

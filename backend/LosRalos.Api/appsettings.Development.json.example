@@ -7,7 +7,7 @@
     }
   },
   "ConnectionStrings": {
-    "DefaultConnection": "Host=localhost;Port=5432;Database=losralos;Username=losralosadmin;Password=dev-only-no-usar-en-produccion"
+    "DefaultConnection": "Host=localhost;Port=5432;Database=losralos;Username=tu-usuario-postgres;Password=tu-password-postgres-local"
   },
   "Jwt": {
     "Secret": "dev-only-secret-minimo-32-characters-aqui"
