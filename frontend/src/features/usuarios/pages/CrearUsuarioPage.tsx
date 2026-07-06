@@ -30,7 +30,7 @@ export function CrearUsuarioPage() {
           <span className="font-medium text-foreground">Nuevo usuario</span>
         </div>
         <h1 className="font-heading text-xl font-semibold sm:text-2xl">Nuevo usuario</h1>
-        <p className="text-sm text-muted-foreground">Se envia el acceso con una contrasenia temporal.</p>
+        <p className="text-sm text-muted-foreground">Se envia el acceso con una contraseña temporal.</p>
       </div>
       <UsuarioForm onSubmit={handleSubmit} />
     </div>

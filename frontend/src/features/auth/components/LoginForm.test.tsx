@@ -1,7 +1,7 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from '@/features/auth/context/AuthContext'
 import { LoginForm } from './LoginForm'
 import { api } from '@/lib/api'
@@ -15,6 +15,20 @@ function renderForm() {
     <AuthProvider>
       <MemoryRouter>
         <LoginForm />
+      </MemoryRouter>
+    </AuthProvider>,
+  )
+}
+
+function renderFormConRutas() {
+  return render(
+    <AuthProvider>
+      <MemoryRouter initialEntries={['/login']}>
+        <Routes>
+          <Route path="/login" element={<LoginForm />} />
+          <Route path="/dashboard" element={<p>Pantalla dashboard</p>} />
+          <Route path="/profesionales" element={<p>Pantalla busqueda profesionales</p>} />
+        </Routes>
       </MemoryRouter>
     </AuthProvider>,
   )
@@ -54,6 +68,34 @@ describe('LoginForm', () => {
         password: 'secreta123',
       })
     })
+  })
+
+  test('login con rol Admin redirige a /dashboard', async () => {
+    vi.mocked(api.post).mockResolvedValueOnce({
+      data: { token: 'jwt-123', nombre: 'Ana', rol: 'Admin', expiraEn: '2026-07-03T00:00:00Z' },
+    })
+    const user = userEvent.setup()
+    renderFormConRutas()
+
+    await user.type(screen.getByLabelText(/email/i), 'ana@hospital.gob.ar')
+    await user.type(screen.getByLabelText(/contrasenia|contraseña|password/i), 'secreta123')
+    await user.click(screen.getByRole('button', { name: /ingresar/i }))
+
+    expect(await screen.findByText('Pantalla dashboard')).toBeInTheDocument()
+  })
+
+  test('login con rol Administrativo redirige a /profesionales', async () => {
+    vi.mocked(api.post).mockResolvedValueOnce({
+      data: { token: 'jwt-456', nombre: 'Juan', rol: 'Administrativo', expiraEn: '2026-07-03T00:00:00Z' },
+    })
+    const user = userEvent.setup()
+    renderFormConRutas()
+
+    await user.type(screen.getByLabelText(/email/i), 'juan@hospital.gob.ar')
+    await user.type(screen.getByLabelText(/contrasenia|contraseña|password/i), 'secreta123')
+    await user.click(screen.getByRole('button', { name: /ingresar/i }))
+
+    expect(await screen.findByText('Pantalla busqueda profesionales')).toBeInTheDocument()
   })
 
   test('credenciales invalidas muestran mensaje de error', async () => {

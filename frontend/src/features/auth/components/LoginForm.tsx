@@ -12,7 +12,7 @@ import { api } from '@/lib/api'
 
 const loginSchema = z.object({
   email: z.string().min(1, 'Email requerido').email('Email invalido'),
-  password: z.string().min(1, 'Contrasenia requerida'),
+  password: z.string().min(1, 'Contraseña requerida'),
 })
 
 type LoginFormValues = z.infer<typeof loginSchema>
@@ -41,7 +41,7 @@ export function LoginForm() {
     try {
       const { data } = await api.post<LoginResponse>('/auth/login', values)
       login(data.token, { nombre: data.nombre, rol: data.rol })
-      navigate('/dashboard')
+      navigate(data.rol === 'Administrativo' ? '/profesionales' : '/dashboard')
     } catch {
       setErrorApi('Credenciales invalidas')
     }
@@ -56,7 +56,7 @@ export function LoginForm() {
           {errors.email && <FieldError>{errors.email.message}</FieldError>}
         </Field>
         <Field data-invalid={!!errors.password}>
-          <FieldLabel htmlFor="password">Contrasenia</FieldLabel>
+          <FieldLabel htmlFor="password">Contraseña</FieldLabel>
           <div className="relative flex items-center">
             <Input
               id="password"
@@ -85,7 +85,7 @@ export function LoginForm() {
           >
             <AlertCircle className="mt-0.5 size-4 shrink-0" />
             <span>
-              <strong className="font-semibold">{errorApi}.</strong> Verifica tu email y contrasenia e
+              <strong className="font-semibold">{errorApi}.</strong> Verifica tu email y contraseña e
               intenta de nuevo.
             </span>
           </div>
