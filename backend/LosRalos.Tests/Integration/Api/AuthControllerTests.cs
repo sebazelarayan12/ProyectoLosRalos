@@ -169,4 +169,20 @@ public class AuthControllerTests : IAsyncLifetime
 
         response.StatusCode.Should().Be(HttpStatusCode.MethodNotAllowed);
     }
+
+    [Fact]
+    public async Task Login_SeisIntentosFallidos_SextoRetorna429()
+    {
+        for (var i = 0; i < 5; i++)
+        {
+            var resp = await _client.PostAsJsonAsync("/api/v1/auth/login",
+                new { email = "admin@test.com", password = "WrongPass" });
+            resp.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        }
+
+        var sexto = await _client.PostAsJsonAsync("/api/v1/auth/login",
+            new { email = "admin@test.com", password = "WrongPass" });
+
+        sexto.StatusCode.Should().Be(HttpStatusCode.TooManyRequests);
+    }
 }

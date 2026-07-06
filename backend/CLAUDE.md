@@ -301,6 +301,52 @@ edito la migration original (regla: nunca tocar una migration ya aplicada).
 
 El listado (`GET /profesionales`) usa `ProfesionalResumenResponse` que NO incluye DNI ni CUIL. Solo `ProfesionalDetalleResponse` (GET /{id}) expone datos sensibles, y ese endpoint registra `VerLegajo` en AuditLog.
 
+### Rate limiting de login — particionado por IP, no global (Paso 12)
+
+`AddSlidingWindowLimiter(nombre, opciones)` crea un limiter GLOBAL (una sola cuenta compartida por
+todos los llamantes), no particionado por IP — a pesar de que el nombre de la politica sea
+"LoginRateLimit". Con eso, 5 intentos fallidos de CUALQUIER usuario/IP bloqueaban el login para
+TODOS (bug de disponibilidad, y no cumplia "5 intentos por IP" del spec Sec. 9 A07). Fix: `AddPolicy`
+con `RateLimitPartition.GetSlidingWindowLimiter` particionado por `ctx.Connection.RemoteIpAddress`,
+mismo patron que ya usaba el `GlobalLimiter`. Si se agrega otro rate limit con
+`Add<Algoritmo>Limiter(nombre, opciones)` (sin partitioner), va a tener el mismo problema — usar
+siempre `AddPolicy` + `RateLimitPartition` cuando el limite debe ser por IP/usuario.
+
+### `Audit:HmacKey` — fail-fast en startup (Paso 12)
+
+Igual que `Jwt:Secret`, si `Audit:HmacKey` esta vacio el arranque debe fallar (antes solo tiraba con
+clave vacia en runtime, silenciosamente debil). Guard agregado en `Program.cs` junto a la validacion
+de `Jwt:Secret`.
+
+### QA + Hardening (Paso 12) — hallazgos y pendientes
+
+Hecho:
+- `frontend/Dockerfile` + `frontend/nginx.conf` creados (no existian — `docker-compose.yml` ya los
+  referenciaba, el build fallaba). Headers de seguridad exactos del spec Sec. 9 A05 (CSP,
+  X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy). Proxy `/api/` hacia
+  el servicio `api` interno (no expuesto directo al host).
+- `.dockerignore` en `backend/` y `frontend/`.
+- `.env.example` completado con `Jwt__Secret`, `Audit__HmacKey`, `Cors__AllowedOrigins__0` (faltaban
+  por completo — el arranque fallaria en cualquier deploy que solo siguiera el `.env.example` viejo).
+- `dotnet list package --vulnerable`: 2 paquetes transitivos High (`System.Net.Http` 4.3.0,
+  `System.Text.RegularExpressions` 4.3.0) traidos por `Testcontainers.PostgreSql` en
+  `LosRalos.Tests`. Fix: pin directo a versiones parcheadas (4.3.4 / 4.3.1) en el `.csproj` — NuGet
+  resuelve a la version mas alta cuando hay referencia directa. `npm audit` en frontend: 0
+  vulnerabilidades.
+- Test nuevo `Login_SeisIntentosFallidos_SextoRetorna429` (faltaba, item explicito del checklist
+  pre-deploy del spec).
+- Healthcheck agregado al servicio `frontend` en `docker-compose.yml` (faltaba, `db` y `api` ya
+  tenian).
+
+Pendiente — requiere decision de arquitectura/deploy, no se toco sin avisar:
+- Usuario de PostgreSQL con permisos minimos (hoy `POSTGRES_USER` es superusuario del contenedor via
+  imagen oficial). Separar en un rol de arranque (migrations, DDL) y un rol de runtime (solo
+  SELECT/INSERT/UPDATE/DELETE) es un cambio de infraestructura de deploy, no algo para implementar
+  sin acuerdo.
+- HTTPS con certificado real, SSL en connection string — spec ya lo marca como pendiente de hosting
+  definitivo (Sec. 14).
+- PDF viewer en iOS Safari — requiere prueba manual en dispositivo real, no automatizable desde aca.
+
 ---
 
 ## Checklist QA (antes de dar un paso por completo)

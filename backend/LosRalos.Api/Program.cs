@@ -25,6 +25,9 @@ builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"))
 builder.Services.Configure<AuditSettings>(builder.Configuration.GetSection("Audit"));
 builder.Services.Configure<StorageSettings>(builder.Configuration.GetSection("Storage"));
 
+if (string.IsNullOrWhiteSpace(builder.Configuration["Audit:HmacKey"]))
+    throw new InvalidOperationException("Audit:HmacKey no configurado.");
+
 // DB
 builder.Services.AddSingleton<TimestampInterceptor>();
 builder.Services.AddDbContext<AppDbContext>((sp, opts) =>
@@ -75,12 +78,20 @@ builder.Services.Configure<ForwardedHeadersOptions>(opts =>
 
 builder.Services.AddRateLimiter(opts =>
 {
-    opts.AddSlidingWindowLimiter("LoginRateLimit", o =>
+    // AddSlidingWindowLimiter(name, options) crea un limiter global (una sola cuenta compartida
+    // por todos los llamantes) — no sirve para "5 intentos por IP". Se particiona por IP a mano,
+    // igual que el GlobalLimiter de abajo.
+    opts.AddPolicy("LoginRateLimit", ctx =>
     {
-        o.PermitLimit = 5;
-        o.Window = TimeSpan.FromMinutes(10);
-        o.SegmentsPerWindow = 2;
-        o.QueueLimit = 0;
+        var key = ctx.Connection.RemoteIpAddress?.ToString() ?? "anon";
+
+        return RateLimitPartition.GetSlidingWindowLimiter(key, _ => new SlidingWindowRateLimiterOptions
+        {
+            PermitLimit = 5,
+            Window = TimeSpan.FromMinutes(10),
+            SegmentsPerWindow = 2,
+            QueueLimit = 0
+        });
     });
 
     opts.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(ctx =>
