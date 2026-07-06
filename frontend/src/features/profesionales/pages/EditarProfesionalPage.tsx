@@ -4,6 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { api } from '@/lib/api'
 import { useProfesionalDetalle } from '../hooks/useProfesionalDetalle'
 import { ProfesionalForm, type ProfesionalFormValues } from '../components/ProfesionalForm'
+import { VolverBusquedaButton } from '../components/VolverBusquedaButton'
 import { editarProfesional } from '../api/editarProfesional'
 import type { ProfesionalRequestPayload } from '../api/crearProfesional'
 import type { ProfesionalDetalle } from '../api/obtenerProfesional'
@@ -58,6 +59,7 @@ export function EditarProfesionalPage() {
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-4 p-4">
       <div className="flex flex-col gap-1.5">
+        <VolverBusquedaButton to={`/profesionales/${id}`} label="Volver al perfil" />
         <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
           <Link to="/profesionales" className="hover:text-foreground hover:underline">
             Busqueda de profesionales

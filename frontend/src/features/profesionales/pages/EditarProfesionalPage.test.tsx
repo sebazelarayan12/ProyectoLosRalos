@@ -66,6 +66,17 @@ describe('EditarProfesionalPage', () => {
     expect(screen.getByRole('button', { name: /guardar cambios/i })).toBeInTheDocument()
   })
 
+  test('boton volver navega al perfil del profesional', async () => {
+    vi.mocked(api.get).mockResolvedValue({ data: profesionalDetalle })
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByLabelText(/^apellido$/i)
+
+    await user.click(screen.getByRole('link', { name: /volver al perfil/i }))
+
+    expect(await screen.findByText('Pantalla Perfil')).toBeInTheDocument()
+  })
+
   test('al guardar, llama a PATCH /profesionales/{id} y navega al perfil', async () => {
     vi.mocked(api.get).mockResolvedValue({ data: profesionalDetalle })
     vi.mocked(api.patch).mockResolvedValue({ data: { ...profesionalDetalle, funcion: 'Enfermera' } })
