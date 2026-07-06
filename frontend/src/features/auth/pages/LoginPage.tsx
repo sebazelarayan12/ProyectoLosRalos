@@ -1,4 +1,3 @@
-import { FileText } from 'lucide-react'
 import { LoginForm } from '@/features/auth/components/LoginForm'
 
 export function LoginPage() {
@@ -13,9 +12,7 @@ export function LoginPage() {
     >
       <div className="flex w-full max-w-sm flex-col gap-5 rounded-2xl border bg-card p-7 shadow-sm">
         <div className="flex flex-col items-center gap-2.5 text-center">
-          <div className="flex size-11 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            <FileText className="size-6" />
-          </div>
+          <img src="/icono.png" alt="" className="size-11" />
           <h1 className="font-heading text-lg font-semibold">Legajos Digitales</h1>
           <p className="text-sm font-medium text-muted-foreground">Hospital Los Ralos</p>
           <p className="mt-0.5 text-xs text-muted-foreground">Ingresa con tu cuenta institucional</p>
