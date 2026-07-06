@@ -21,6 +21,7 @@ backend/LosRalos.Api/appsettings.Development.json
 # IDE
 .idea/
 .vscode/
+.superpowers/
 
 # Logs
 logs/
