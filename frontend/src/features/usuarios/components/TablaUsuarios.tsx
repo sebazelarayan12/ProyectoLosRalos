@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { KeyRound, Pencil, Power } from 'lucide-react'
+import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -24,6 +25,7 @@ import {
 } from '@/components/ui/table'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { api } from '@/lib/api'
+import { extraerMensajeError } from '@/lib/extraerMensajeError'
 import { activarUsuario } from '../api/activarUsuario'
 import { desactivarUsuario } from '../api/desactivarUsuario'
 import type { Usuario } from '../api/buscarUsuarios'
@@ -32,11 +34,6 @@ type TablaUsuariosProps = {
   usuarios: Usuario[]
   onEditar: (usuario: Usuario) => void
   onResetearPassword: (usuario: Usuario) => void
-}
-
-function extraerMensajeError(error: unknown): string {
-  const conRespuesta = error as { response?: { data?: { message?: string } } }
-  return conRespuesta.response?.data?.message ?? 'No se pudo completar la accion'
 }
 
 function RolBadge({ rol }: { rol: Usuario['rol'] }) {
@@ -68,8 +65,8 @@ type ActivarDesactivarActionProps = {
 }
 
 // AlertDialogAction cierra el dialog automaticamente al hacer click (comportamiento de Radix),
-// asi que el dialog se controla a mano: solo se cierra en onSuccess, para poder mostrar el
-// mensaje de error del backend (ej: autodesactivacion, ultimo admin) si la mutacion falla.
+// asi que el dialog se controla a mano: solo se cierra en onSuccess, para que si la mutacion
+// falla (ej: autodesactivacion, ultimo admin) el usuario pueda reintentar sin reabrir el dialog.
 function ActivarDesactivarAction({ usuario, className }: ActivarDesactivarActionProps) {
   const [open, setOpen] = useState(false)
   const queryClient = useQueryClient()
@@ -79,6 +76,10 @@ function ActivarDesactivarAction({ usuario, className }: ActivarDesactivarAction
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['usuarios'] })
       setOpen(false)
+      toast.success('Usuario activado')
+    },
+    onError: (error) => {
+      toast.error(extraerMensajeError(error, 'No se pudo completar la accion'))
     },
   })
 
@@ -87,6 +88,10 @@ function ActivarDesactivarAction({ usuario, className }: ActivarDesactivarAction
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['usuarios'] })
       setOpen(false)
+      toast.success('Usuario desactivado')
+    },
+    onError: (error) => {
+      toast.error(extraerMensajeError(error, 'No se pudo completar la accion'))
     },
   })
 
@@ -109,9 +114,6 @@ function ActivarDesactivarAction({ usuario, className }: ActivarDesactivarAction
               : `${usuario.nombre} va a poder volver a iniciar sesion.`}
           </AlertDialogDescription>
         </AlertDialogHeader>
-        {mutation.isError && (
-          <p className="text-sm text-destructive">{extraerMensajeError(mutation.error)}</p>
-        )}
         <AlertDialogFooter>
           <AlertDialogCancel>Cancelar</AlertDialogCancel>
           <AlertDialogAction

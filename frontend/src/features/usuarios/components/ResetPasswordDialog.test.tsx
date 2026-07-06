@@ -5,10 +5,15 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { ResetPasswordDialog } from './ResetPasswordDialog'
 import { api } from '@/lib/api'
+import { toast } from 'sonner'
 import type { Usuario } from '../api/buscarUsuarios'
 
 vi.mock('@/lib/api', () => ({
   api: { post: vi.fn() },
+}))
+
+vi.mock('sonner', () => ({
+  toast: { success: vi.fn(), error: vi.fn() },
 }))
 
 function wrapper({ children }: { children: ReactNode }) {
@@ -61,5 +66,20 @@ describe('ResetPasswordDialog', () => {
     })
     await screen.findByRole('button', { name: /^resetear password$/i })
     expect(onOpenChange).toHaveBeenCalledWith(false)
+    expect(toast.success).toHaveBeenCalled()
+  })
+
+  test('si falla, muestra un toast de error y no cierra el dialog', async () => {
+    vi.mocked(api.post).mockRejectedValue({ response: { data: { message: 'Usuario no encontrado' } } })
+    const onOpenChange = vi.fn()
+    const user = userEvent.setup()
+    render(<ResetPasswordDialog usuario={usuario} open={true} onOpenChange={onOpenChange} />, { wrapper })
+
+    await user.type(screen.getByLabelText(/nueva password temporal/i), 'nuevaPassword1')
+    await user.click(screen.getByRole('button', { name: /^resetear password$/i }))
+
+    await screen.findByRole('button', { name: /^resetear password$/i })
+    expect(toast.error).toHaveBeenCalledWith('Usuario no encontrado')
+    expect(onOpenChange).not.toHaveBeenCalledWith(false)
   })
 })

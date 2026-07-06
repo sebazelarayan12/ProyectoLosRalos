@@ -2,12 +2,14 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { SelectField } from '@/components/SelectField'
 import { api } from '@/lib/api'
+import { extraerMensajeError } from '@/lib/extraerMensajeError'
 import { editarUsuario } from '../api/editarUsuario'
 import type { Usuario } from '../api/buscarUsuarios'
 
@@ -53,6 +55,10 @@ export function EditarUsuarioDialog({ usuario, open, onOpenChange }: EditarUsuar
       queryClient.invalidateQueries({ queryKey: ['usuarios'] })
       reset()
       onOpenChange(false)
+      toast.success('Usuario actualizado correctamente')
+    },
+    onError: (error) => {
+      toast.error(extraerMensajeError(error, 'No se pudo guardar los cambios'))
     },
   })
 
@@ -91,13 +97,6 @@ export function EditarUsuarioDialog({ usuario, open, onOpenChange }: EditarUsuar
               error={errors.rol?.message}
             />
           </FieldGroup>
-
-          {mutation.isError && (
-            <p className="mt-2 text-sm text-destructive">
-              {(mutation.error as { response?: { data?: { message?: string } } }).response?.data
-                ?.message ?? 'No se pudo guardar los cambios'}
-            </p>
-          )}
 
           <DialogFooter className="mt-4">
             <Button type="submit" disabled={mutation.isPending}>

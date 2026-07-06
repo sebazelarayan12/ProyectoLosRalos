@@ -1,6 +1,8 @@
 import { useNavigate, Link } from 'react-router-dom'
 import { ChevronRight } from 'lucide-react'
+import { toast } from 'sonner'
 import { api } from '@/lib/api'
+import { extraerMensajeError } from '@/lib/extraerMensajeError'
 import { UsuarioForm } from '../components/UsuarioForm'
 import { crearUsuario, type CrearUsuarioPayload } from '../api/crearUsuario'
 
@@ -8,8 +10,13 @@ export function CrearUsuarioPage() {
   const navigate = useNavigate()
 
   const handleSubmit = async (payload: CrearUsuarioPayload) => {
-    await crearUsuario(api, payload)
-    navigate('/usuarios')
+    try {
+      await crearUsuario(api, payload)
+      toast.success('Usuario creado correctamente')
+      navigate('/usuarios')
+    } catch (error) {
+      toast.error(extraerMensajeError(error, 'No se pudo crear el usuario'))
+    }
   }
 
   return (

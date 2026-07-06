@@ -1,5 +1,7 @@
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import { api } from '@/lib/api'
+import { extraerMensajeError } from '@/lib/extraerMensajeError'
 import { ProfesionalForm } from '../components/ProfesionalForm'
 import { VolverBusquedaButton } from '../components/VolverBusquedaButton'
 import { crearProfesional, type ProfesionalRequestPayload } from '../api/crearProfesional'
@@ -8,8 +10,13 @@ export function CrearProfesionalPage() {
   const navigate = useNavigate()
 
   const handleSubmit = async (payload: ProfesionalRequestPayload) => {
-    const detalle = await crearProfesional(api, payload)
-    navigate(`/profesionales/${detalle.id}`)
+    try {
+      const detalle = await crearProfesional(api, payload)
+      toast.success('Profesional creado correctamente')
+      navigate(`/profesionales/${detalle.id}`)
+    } catch (error) {
+      toast.error(extraerMensajeError(error, 'No se pudo crear el profesional'))
+    }
   }
 
   return (

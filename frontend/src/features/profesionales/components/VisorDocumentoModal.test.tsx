@@ -8,10 +8,14 @@ import { useArchivoDocumento } from '../hooks/useArchivoDocumento'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { eliminarDocumento } from '../api/eliminarDocumento'
 import type { DocumentoResumen } from '../api/obtenerProfesional'
+import { toast } from 'sonner'
 
 vi.mock('../hooks/useArchivoDocumento')
 vi.mock('@/hooks/useMediaQuery')
 vi.mock('../api/eliminarDocumento')
+vi.mock('sonner', () => ({
+  toast: { success: vi.fn(), error: vi.fn() },
+}))
 
 function wrapper({ children }: { children: ReactNode }) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
@@ -147,5 +151,30 @@ describe('VisorDocumentoModal', () => {
 
     await waitFor(() => expect(eliminarDocumento).toHaveBeenCalledWith(expect.anything(), 'doc-1'))
     expect(onEliminado).toHaveBeenCalled()
+    expect(toast.success).toHaveBeenCalledWith('Documento eliminado')
+  })
+
+  test('si eliminar falla, muestra un toast de error y no cierra el modal', async () => {
+    const blob = new Blob(['x'], { type: 'image/jpeg' })
+    vi.mocked(useArchivoDocumento).mockReturnValue({ data: blob, isLoading: false, isError: false } as never)
+    vi.mocked(eliminarDocumento).mockRejectedValue(new Error('fail'))
+    const onOpenChange = vi.fn()
+    const user = userEvent.setup()
+
+    render(
+      <VisorDocumentoModal
+        documento={documentoImagen}
+        open={true}
+        onOpenChange={onOpenChange}
+        esAdmin={true}
+      />,
+      { wrapper },
+    )
+
+    await user.click(screen.getByRole('button', { name: /eliminar/i }))
+    await user.click(await screen.findByRole('button', { name: /confirmar/i }))
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('No se pudo eliminar el documento'))
+    expect(onOpenChange).not.toHaveBeenCalledWith(false)
   })
 })

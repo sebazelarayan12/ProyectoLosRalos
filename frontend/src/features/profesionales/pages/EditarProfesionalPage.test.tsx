@@ -5,9 +5,14 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import userEvent from '@testing-library/user-event'
 import { EditarProfesionalPage } from './EditarProfesionalPage'
 import { api } from '@/lib/api'
+import { toast } from 'sonner'
 
 vi.mock('@/lib/api', () => ({
   api: { get: vi.fn(), patch: vi.fn() },
+}))
+
+vi.mock('sonner', () => ({
+  toast: { success: vi.fn(), error: vi.fn() },
 }))
 
 const profesionalDetalle = {
@@ -91,5 +96,20 @@ describe('EditarProfesionalPage', () => {
       `/profesionales/${profesionalDetalle.id}`,
       expect.objectContaining({ apellido: 'Perez' }),
     )
+    expect(toast.success).toHaveBeenCalled()
+  }, 15000)
+
+  test('si falla el guardado, muestra un toast de error y no navega', async () => {
+    vi.mocked(api.get).mockResolvedValue({ data: profesionalDetalle })
+    vi.mocked(api.patch).mockRejectedValue({ response: { data: { message: 'El DNI ya esta en uso' } } })
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByLabelText(/^apellido$/i)
+
+    await user.click(screen.getByRole('button', { name: /guardar cambios/i }))
+
+    await screen.findByRole('button', { name: /guardar cambios/i })
+    expect(toast.error).toHaveBeenCalledWith('El DNI ya esta en uso')
+    expect(screen.queryByText('Pantalla Perfil')).not.toBeInTheDocument()
   }, 15000)
 })

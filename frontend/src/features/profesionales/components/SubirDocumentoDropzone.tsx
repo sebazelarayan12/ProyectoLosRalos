@@ -29,6 +29,9 @@ export function SubirDocumentoDropzone({ profesionalId, onSubido }: SubirDocumen
       if (inputRef.current) inputRef.current.value = ''
       toast.success('Documento subido correctamente')
     },
+    onError: () => {
+      toast.error('No se pudo subir el documento')
+    },
   })
 
   const subir = (archivo: File) => {
@@ -119,9 +122,6 @@ export function SubirDocumentoDropzone({ profesionalId, onSubido }: SubirDocumen
         Subir documento
       </Button>
 
-      {mutation.isError && (
-        <p className="text-sm text-destructive">No se pudo subir el documento</p>
-      )}
       {mutation.isPending && <p className="text-sm text-muted-foreground">Subiendo...</p>}
     </div>
   )

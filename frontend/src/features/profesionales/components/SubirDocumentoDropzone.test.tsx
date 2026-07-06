@@ -12,7 +12,7 @@ vi.mock('@/lib/api', () => ({
 }))
 
 vi.mock('sonner', () => ({
-  toast: { success: vi.fn() },
+  toast: { success: vi.fn(), error: vi.fn() },
 }))
 
 function wrapper({ children }: { children: ReactNode }) {
@@ -93,6 +93,6 @@ describe('SubirDocumentoDropzone', () => {
     await elegirTipo(user, 'DNI')
     await user.upload(screen.getByLabelText(/seleccionar archivo/i), archivo)
 
-    expect(await screen.findByText(/no se pudo subir el documento/i)).toBeInTheDocument()
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('No se pudo subir el documento'))
   })
 })

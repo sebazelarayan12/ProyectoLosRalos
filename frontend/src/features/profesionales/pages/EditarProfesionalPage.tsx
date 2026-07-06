@@ -1,7 +1,9 @@
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import { ChevronRight } from 'lucide-react'
+import { toast } from 'sonner'
 import { Skeleton } from '@/components/ui/skeleton'
 import { api } from '@/lib/api'
+import { extraerMensajeError } from '@/lib/extraerMensajeError'
 import { useProfesionalDetalle } from '../hooks/useProfesionalDetalle'
 import { ProfesionalForm, type ProfesionalFormValues } from '../components/ProfesionalForm'
 import { VolverBusquedaButton } from '../components/VolverBusquedaButton'
@@ -52,8 +54,13 @@ export function EditarProfesionalPage() {
   }
 
   const handleSubmit = async (payload: ProfesionalRequestPayload) => {
-    await editarProfesional(api, id!, payload)
-    navigate(`/profesionales/${id}`)
+    try {
+      await editarProfesional(api, id!, payload)
+      toast.success('Cambios guardados correctamente')
+      navigate(`/profesionales/${id}`)
+    } catch (error) {
+      toast.error(extraerMensajeError(error, 'No se pudo guardar los cambios'))
+    }
   }
 
   return (

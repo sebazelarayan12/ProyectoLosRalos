@@ -5,10 +5,15 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { TablaUsuarios } from './TablaUsuarios'
 import { api } from '@/lib/api'
+import { toast } from 'sonner'
 import type { Usuario } from '../api/buscarUsuarios'
 
 vi.mock('@/lib/api', () => ({
   api: { patch: vi.fn() },
+}))
+
+vi.mock('sonner', () => ({
+  toast: { success: vi.fn(), error: vi.fn() },
 }))
 
 function wrapper({ children }: { children: ReactNode }) {
@@ -69,6 +74,7 @@ describe('TablaUsuarios', () => {
     await user.click(await screen.findByRole('button', { name: /confirmar/i }))
 
     expect(api.patch).toHaveBeenCalledWith('/usuarios/u1/desactivar')
+    expect(toast.success).toHaveBeenCalledWith('Usuario desactivado')
   })
 
   test('activar usuario inactivo llama a PATCH /usuarios/{id}/activar tras confirmar', async () => {
@@ -84,9 +90,10 @@ describe('TablaUsuarios', () => {
     await user.click(await screen.findByRole('button', { name: /confirmar/i }))
 
     expect(api.patch).toHaveBeenCalledWith('/usuarios/u1/activar')
+    expect(toast.success).toHaveBeenCalledWith('Usuario activado')
   })
 
-  test('muestra el mensaje de error del backend si la desactivacion falla (ej: autodesactivacion)', async () => {
+  test('muestra un toast con el mensaje de error del backend si la desactivacion falla (ej: autodesactivacion)', async () => {
     vi.mocked(api.patch).mockRejectedValue({
       response: { data: { message: 'No podes desactivarte a vos mismo' } },
     })
@@ -99,6 +106,7 @@ describe('TablaUsuarios', () => {
     await user.click(screen.getByRole('button', { name: /^desactivar$/i }))
     await user.click(await screen.findByRole('button', { name: /confirmar/i }))
 
-    expect(await screen.findByText(/no podes desactivarte a vos mismo/i)).toBeInTheDocument()
+    await screen.findByRole('button', { name: /confirmar/i })
+    expect(toast.error).toHaveBeenCalledWith('No podes desactivarte a vos mismo')
   })
 })

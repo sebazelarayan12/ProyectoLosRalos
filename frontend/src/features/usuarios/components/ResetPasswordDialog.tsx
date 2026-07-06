@@ -2,11 +2,13 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useMutation } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { api } from '@/lib/api'
+import { extraerMensajeError } from '@/lib/extraerMensajeError'
 import { resetearPassword } from '../api/resetearPassword'
 import type { Usuario } from '../api/buscarUsuarios'
 
@@ -41,6 +43,10 @@ export function ResetPasswordDialog({ usuario, open, onOpenChange }: ResetPasswo
     onSuccess: () => {
       reset()
       onOpenChange(false)
+      toast.success('Password reseteada correctamente')
+    },
+    onError: (error) => {
+      toast.error(extraerMensajeError(error, 'No se pudo resetear la password'))
     },
   })
 
@@ -72,13 +78,6 @@ export function ResetPasswordDialog({ usuario, open, onOpenChange }: ResetPasswo
               {errors.nuevaPassword && <FieldError>{errors.nuevaPassword.message}</FieldError>}
             </Field>
           </FieldGroup>
-
-          {mutation.isError && (
-            <p className="mt-2 text-sm text-destructive">
-              {(mutation.error as { response?: { data?: { message?: string } } }).response?.data
-                ?.message ?? 'No se pudo resetear la password'}
-            </p>
-          )}
 
           <DialogFooter className="mt-4">
             <Button type="submit" disabled={mutation.isPending}>

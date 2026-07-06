@@ -5,9 +5,14 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import userEvent from '@testing-library/user-event'
 import { CrearUsuarioPage } from './CrearUsuarioPage'
 import { api } from '@/lib/api'
+import { toast } from 'sonner'
 
 vi.mock('@/lib/api', () => ({
   api: { post: vi.fn() },
+}))
+
+vi.mock('sonner', () => ({
+  toast: { success: vi.fn(), error: vi.fn() },
 }))
 
 function renderPage() {
@@ -49,5 +54,24 @@ describe('CrearUsuarioPage', () => {
       password: 'password123',
       rol: 'Visor',
     })
+    expect(toast.success).toHaveBeenCalled()
+  })
+
+  test('si falla la creacion, muestra un toast de error y no navega', async () => {
+    vi.mocked(api.post).mockRejectedValue({ response: { data: { message: 'El email ya esta en uso' } } })
+    const user = userEvent.setup()
+    renderPage()
+
+    await user.type(screen.getByLabelText(/^nombre$/i), 'Juan Perez')
+    await user.type(screen.getByLabelText(/^email$/i), 'juan@test.com')
+    await user.type(screen.getByLabelText(/password temporal/i), 'password123')
+    await user.click(screen.getByRole('combobox', { name: /^rol$/i }))
+    await user.click(await screen.findByRole('option', { name: 'Visor' }))
+
+    await user.click(screen.getByRole('button', { name: /crear usuario/i }))
+
+    await screen.findByRole('button', { name: /crear usuario/i })
+    expect(toast.error).toHaveBeenCalledWith('El email ya esta en uso')
+    expect(screen.queryByText('Pantalla Usuarios')).not.toBeInTheDocument()
   })
 })

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { Download, FileText, Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import {
   AlertDialog,
@@ -46,6 +47,10 @@ export function VisorDocumentoModal({
     onSuccess: () => {
       onEliminado?.()
       onOpenChange(false)
+      toast.success('Documento eliminado')
+    },
+    onError: () => {
+      toast.error('No se pudo eliminar el documento')
     },
   })
 
