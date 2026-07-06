@@ -103,7 +103,7 @@ export function VisorDocumentoModal({
           ) : null}
         </div>
 
-        <DialogFooter className="border-t px-4.5 py-3.5 sm:justify-between">
+        <DialogFooter className="mx-0 mb-0 border-t px-4.5 py-3.5 sm:justify-between">
           {esAdmin ? (
             <AlertDialog>
               <AlertDialogTrigger asChild>
