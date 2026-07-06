@@ -74,6 +74,33 @@ en ese momento — no dejarlo para "despues". Ejemplos ya resueltos en este proy
   (hard navigation, no usa React Router) — asi el estado de `AuthContext` se re-lee desde localStorage
   al recargar, sin necesidad de sincronizar contexto manualmente.
 
+## DialogFooter con DialogContent p-0 — margenes negativos sin cancelar
+
+`DialogFooter` (`components/ui/dialog.tsx`) trae por defecto `-mx-4 -mb-4` para cancelar el `p-4`
+que `DialogContent` aplica por defecto (asi el footer llega al ras del borde del dialog con su
+propio `p-4` + `rounded-b-xl`). `VisorDocumentoModal.tsx` usa `DialogContent` con `p-0` (maneja
+padding por seccion con bordes) — al pasarle `className` al `DialogFooter` solo se pisaba el
+padding, no los margenes (`cn()`/tailwind-merge no tiene por que tocar una utilidad que no se
+repite). Resultado: el footer quedaba corrido 1rem afuera del dialog real — se veia como "los
+botones pegados al borde de la ventana". Fix: agregar `mx-0 mb-0` explicito en el className del
+`DialogFooter` cuando el `DialogContent` padre usa `p-0`. Si se agrega otro modal con este mismo
+patron (`p-0` + secciones con `border-t`), aplicar el mismo `mx-0 mb-0` en su `DialogFooter`.
+
+## Button sin forwardRef rompia Popover (Paso 10 — combobox tipo documento)
+
+`components/ui/button.tsx` generado por shadcn NO envolvia `Button` en `React.forwardRef` (asumia
+React 19, donde `ref` es una prop normal). Este proyecto usa **React 18.3.1**, donde un componente
+funcion sin `forwardRef` recibe el warning "Function components cannot be given refs" y el `ref`
+se descarta en silencio. No importaba mientras `Button asChild` solo envolvia `Link` o triggers de
+overlays no flotantes (`Sheet`, `AlertDialog` — no necesitan medir el DOM del trigger). Se rompio
+recien con `PopoverTrigger asChild` + `Button` (combobox): Radix Popper necesita el ref real del
+trigger para calcular la posicion via floating-ui; sin el, el contenido queda pegado en su posicion
+de medicion inicial (`transform: translate(0, -200%)`, fuera de pantalla) para siempre — se ve
+"roto"/invisible aunque el DOM y los tests con jsdom (que no verifican posicionamiento real) pasen
+bien. Fix: `Button` ahora usa `React.forwardRef` (ver archivo). Si se agrega otro overlay flotante
+(`Popover`, `HoverCard`, `Tooltip`, `DropdownMenu`) con `Button asChild` como trigger, no hace falta
+tocar nada mas — ya forwardea el ref correctamente.
+
 ## React doctor — advertencias aceptadas (Paso 5)
 
 - `src/components/ui/field.tsx` (useMemo antes de early return) y `src/components/ui/button.tsx`
@@ -122,6 +149,10 @@ documentado aca.
 - `ResetPasswordDialog.tsx` — "Mutation without cache invalidation": falso positivo. Resetear la
   password no cambia ningun campo visible en la lista de usuarios (`nombre`/`email`/`rol`/`activo`),
   no hay cache desactualizada que invalidar.
+- `SubirDocumentoDropzone.tsx` — "Role used instead of HTML tag" en el `div role="button"` de la
+  zona drag&drop: falso positivo. Es un dropzone real (necesita `onDragOver`/`onDrop`, que un
+  `<button>` nativo no soporta bien) con soporte de teclado agregado a mano (`tabIndex`,
+  `onKeyDown` para Enter/Space) — no un boton disfrazado.
 
 ## Paginacion cursor-based en UI (Paso 6)
 

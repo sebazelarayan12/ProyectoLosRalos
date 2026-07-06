@@ -5,9 +5,14 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { SubirDocumentoDropzone } from './SubirDocumentoDropzone'
 import { api } from '@/lib/api'
+import { toast } from 'sonner'
 
 vi.mock('@/lib/api', () => ({
-  api: { post: vi.fn() },
+  api: { post: vi.fn(), get: vi.fn() },
+}))
+
+vi.mock('sonner', () => ({
+  toast: { success: vi.fn() },
 }))
 
 function wrapper({ children }: { children: ReactNode }) {
@@ -15,12 +20,36 @@ function wrapper({ children }: { children: ReactNode }) {
   return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
 }
 
+async function elegirTipo(user: ReturnType<typeof userEvent.setup>, texto: string) {
+  await user.click(screen.getByRole('combobox'))
+  await user.type(screen.getByPlaceholderText(/buscar o crear tipo/i), texto)
+  await user.click(await screen.findByText(new RegExp(`crear tipo: ${texto}`, 'i')))
+}
+
 describe('SubirDocumentoDropzone', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.mocked(api.get).mockResolvedValue({ data: [] })
   })
 
-  test('sube el archivo con el tipo indicado y notifica onSubido', async () => {
+  test('boton y dropzone quedan deshabilitados mientras no hay tipo elegido', async () => {
+    render(<SubirDocumentoDropzone profesionalId="prof-1" onSubido={vi.fn()} />, { wrapper })
+
+    expect(screen.getByRole('button', { name: /subir documento/i })).toBeDisabled()
+    expect(screen.getByLabelText(/seleccionar archivo/i)).toBeDisabled()
+  })
+
+  test('boton y dropzone se habilitan al elegir un tipo', async () => {
+    const user = userEvent.setup()
+    render(<SubirDocumentoDropzone profesionalId="prof-1" onSubido={vi.fn()} />, { wrapper })
+
+    await elegirTipo(user, 'DNI')
+
+    expect(screen.getByRole('button', { name: /subir documento/i })).toBeEnabled()
+    expect(screen.getByLabelText(/seleccionar archivo/i)).toBeEnabled()
+  })
+
+  test('sube el archivo con el tipo elegido y notifica onSubido', async () => {
     vi.mocked(api.post).mockResolvedValue({ data: { id: 'doc-1' } })
     const onSubido = vi.fn()
     const user = userEvent.setup()
@@ -28,7 +57,7 @@ describe('SubirDocumentoDropzone', () => {
 
     render(<SubirDocumentoDropzone profesionalId="prof-1" onSubido={onSubido} />, { wrapper })
 
-    await user.type(screen.getByLabelText(/tipo de documento/i), 'DNI')
+    await elegirTipo(user, 'DNI')
     await user.upload(screen.getByLabelText(/seleccionar archivo/i), archivo)
 
     await waitFor(() => expect(onSubido).toHaveBeenCalled())
@@ -39,16 +68,19 @@ describe('SubirDocumentoDropzone', () => {
     )
   })
 
-  test('no sube si falta el tipo de documento', async () => {
+  test('al subir con exito, limpia el tipo elegido y muestra un toast', async () => {
+    vi.mocked(api.post).mockResolvedValue({ data: { id: 'doc-1' } })
     const user = userEvent.setup()
     const archivo = new File(['contenido'], 'foto.jpg', { type: 'image/jpeg' })
 
     render(<SubirDocumentoDropzone profesionalId="prof-1" onSubido={vi.fn()} />, { wrapper })
 
+    await elegirTipo(user, 'DNI')
     await user.upload(screen.getByLabelText(/seleccionar archivo/i), archivo)
 
-    expect(await screen.findByText(/indica el tipo de documento/i)).toBeInTheDocument()
-    expect(api.post).not.toHaveBeenCalled()
+    await waitFor(() => expect(toast.success).toHaveBeenCalled())
+    expect(screen.getByRole('button', { name: /subir documento/i })).toBeDisabled()
+    expect(screen.getByRole('combobox')).toHaveTextContent(/ej: dni, titulo, certificado/i)
   })
 
   test('muestra error si la subida falla', async () => {
@@ -58,7 +90,7 @@ describe('SubirDocumentoDropzone', () => {
 
     render(<SubirDocumentoDropzone profesionalId="prof-1" onSubido={vi.fn()} />, { wrapper })
 
-    await user.type(screen.getByLabelText(/tipo de documento/i), 'DNI')
+    await elegirTipo(user, 'DNI')
     await user.upload(screen.getByLabelText(/seleccionar archivo/i), archivo)
 
     expect(await screen.findByText(/no se pudo subir el documento/i)).toBeInTheDocument()

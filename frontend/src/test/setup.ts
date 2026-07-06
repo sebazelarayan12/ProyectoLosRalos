@@ -14,6 +14,15 @@ if (!Element.prototype.scrollIntoView) {
   Element.prototype.scrollIntoView = () => {}
 }
 
+// cmdk (Command) usa ResizeObserver, no implementado en jsdom.
+if (!window.ResizeObserver) {
+  window.ResizeObserver = class ResizeObserver {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  }
+}
+
 // jsdom no implementa matchMedia — usado por useMediaQuery.
 if (!window.matchMedia) {
   window.matchMedia = (query: string) => ({

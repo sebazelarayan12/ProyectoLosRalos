@@ -48,6 +48,13 @@ const profesionalDetalle = {
   ],
 }
 
+function mockearGetProfesional() {
+  vi.mocked(api.get).mockImplementation((url: string) => {
+    if (url.includes('/tipos-documento')) return Promise.resolve({ data: [] })
+    return Promise.resolve({ data: profesionalDetalle })
+  })
+}
+
 function setUsuario(rol: 'Admin' | 'Visor') {
   localStorage.setItem('auth_token', 'fake-token')
   localStorage.setItem('auth_usuario', JSON.stringify({ nombre: 'Ana', rol }))
@@ -77,7 +84,7 @@ describe('PerfilProfesionalPage', () => {
 
   test('muestra datos del profesional y sus documentos', async () => {
     setUsuario('Visor')
-    vi.mocked(api.get).mockResolvedValue({ data: profesionalDetalle })
+    mockearGetProfesional()
 
     renderPage()
 
@@ -88,7 +95,7 @@ describe('PerfilProfesionalPage', () => {
 
   test('boton Editar visible solo para admin', async () => {
     setUsuario('Admin')
-    vi.mocked(api.get).mockResolvedValue({ data: profesionalDetalle })
+    mockearGetProfesional()
 
     renderPage()
 
@@ -97,7 +104,7 @@ describe('PerfilProfesionalPage', () => {
 
   test('click en Editar navega a la pantalla de edicion', async () => {
     setUsuario('Admin')
-    vi.mocked(api.get).mockResolvedValue({ data: profesionalDetalle })
+    mockearGetProfesional()
     const user = userEvent.setup()
     renderPage()
 
@@ -108,7 +115,7 @@ describe('PerfilProfesionalPage', () => {
 
   test('boton Editar no aparece para visor', async () => {
     setUsuario('Visor')
-    vi.mocked(api.get).mockResolvedValue({ data: profesionalDetalle })
+    mockearGetProfesional()
 
     renderPage()
 
@@ -118,7 +125,7 @@ describe('PerfilProfesionalPage', () => {
 
   test('zona de subir documento visible solo para admin', async () => {
     setUsuario('Admin')
-    vi.mocked(api.get).mockResolvedValue({ data: profesionalDetalle })
+    mockearGetProfesional()
 
     renderPage()
 
@@ -127,7 +134,7 @@ describe('PerfilProfesionalPage', () => {
 
   test('zona de subir documento no aparece para visor', async () => {
     setUsuario('Visor')
-    vi.mocked(api.get).mockResolvedValue({ data: profesionalDetalle })
+    mockearGetProfesional()
 
     renderPage()
 
@@ -141,6 +148,7 @@ describe('PerfilProfesionalPage', () => {
       if (url.includes('/file')) {
         return Promise.resolve({ data: new Blob(['x'], { type: 'image/jpeg' }) })
       }
+      if (url.includes('/tipos-documento')) return Promise.resolve({ data: [] })
       return Promise.resolve({ data: profesionalDetalle })
     })
     const user = userEvent.setup()
