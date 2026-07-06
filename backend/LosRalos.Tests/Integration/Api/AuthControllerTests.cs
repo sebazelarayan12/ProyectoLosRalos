@@ -184,5 +184,12 @@ public class AuthControllerTests : IAsyncLifetime
             new { email = "admin@test.com", password = "WrongPass" });
 
         sexto.StatusCode.Should().Be(HttpStatusCode.TooManyRequests);
+        sexto.Headers.RetryAfter.Should().NotBeNull();
+
+        var body = await sexto.Content.ReadFromJsonAsync<RateLimitErrorResponse>();
+        body!.Type.Should().Be("LoginRateLimitExceeded");
+        body.Message.Should().Contain("10 minutos");
     }
 }
+
+file record RateLimitErrorResponse(string Type, string Message);

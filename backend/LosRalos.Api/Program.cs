@@ -76,6 +76,8 @@ builder.Services.Configure<ForwardedHeadersOptions>(opts =>
         System.Net.IPAddress.Parse("172.16.0.0"), 12));
 });
 
+var loginRateLimitWindow = TimeSpan.FromMinutes(10);
+
 builder.Services.AddRateLimiter(opts =>
 {
     // AddSlidingWindowLimiter(name, options) crea un limiter global (una sola cuenta compartida
@@ -88,7 +90,7 @@ builder.Services.AddRateLimiter(opts =>
         return RateLimitPartition.GetSlidingWindowLimiter(key, _ => new SlidingWindowRateLimiterOptions
         {
             PermitLimit = 5,
-            Window = TimeSpan.FromMinutes(10),
+            Window = loginRateLimitWindow,
             SegmentsPerWindow = 2,
             QueueLimit = 0
         });
@@ -110,6 +112,24 @@ builder.Services.AddRateLimiter(opts =>
     opts.OnRejected = async (ctx, ct) =>
     {
         ctx.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+
+        var esLogin = ctx.HttpContext.Request.Path.Value?.EndsWith(
+            "/auth/login", StringComparison.OrdinalIgnoreCase) ?? false;
+
+        if (esLogin)
+        {
+            var minutos = (int)Math.Ceiling(loginRateLimitWindow.TotalMinutes);
+            ctx.HttpContext.Response.Headers["Retry-After"] = loginRateLimitWindow.TotalSeconds.ToString("F0");
+
+            await ctx.HttpContext.Response.WriteAsJsonAsync(
+                new
+                {
+                    type = "LoginRateLimitExceeded",
+                    message = $"Demasiados intentos fallidos. Espere {minutos} minutos antes de volver a intentar."
+                }, ct);
+            return;
+        }
+
         await ctx.HttpContext.Response.WriteAsJsonAsync(
             new { type = "RateLimitExceeded", message = "Demasiadas solicitudes. Intente mas tarde." }, ct);
     };
