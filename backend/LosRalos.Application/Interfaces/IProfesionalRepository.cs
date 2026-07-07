@@ -14,4 +14,5 @@ public interface IProfesionalRepository
     Task<bool> ExistsCuilAsync(string cuil, Guid? excludeId, CancellationToken ct);
     Task AddAsync(Profesional profesional, CancellationToken ct);
     Task UpdateAsync(Profesional profesional, CancellationToken ct);
+    Task DeleteAsync(Profesional profesional, CancellationToken ct);
 }

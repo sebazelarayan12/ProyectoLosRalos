@@ -92,6 +92,37 @@ public class ProfesionalesController(IProfesionalService service, IDocumentoServ
         return NoContent();
     }
 
+    [HttpPatch("{id:guid}/reactivar")]
+    [Authorize(Roles = "Admin,Administrativo")]
+    [ProducesResponseType(204)]
+    [ProducesResponseType(404)]
+    public async Task<IActionResult> Reactivar(Guid id, CancellationToken ct)
+    {
+        var usuarioId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var nombre = User.FindFirstValue("nombre") ?? string.Empty;
+        var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
+
+        await service.ReactivarAsync(id, usuarioId, nombre, ip, ct)
+            .ConfigureAwait(false);
+        return NoContent();
+    }
+
+    [HttpDelete("{id:guid}/definitivo")]
+    [Authorize(Roles = "Admin,Administrativo")]
+    [ProducesResponseType(204)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(404)]
+    public async Task<IActionResult> EliminarDefinitivo(Guid id, CancellationToken ct)
+    {
+        var usuarioId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var nombre = User.FindFirstValue("nombre") ?? string.Empty;
+        var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
+
+        await service.EliminarDefinitivoAsync(id, usuarioId, nombre, ip, ct)
+            .ConfigureAwait(false);
+        return NoContent();
+    }
+
     [HttpPost("{id:guid}/documentos")]
     [Authorize(Roles = "Admin,Administrativo")]
     [ProducesResponseType(201)]

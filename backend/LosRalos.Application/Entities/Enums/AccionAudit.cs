@@ -9,6 +9,8 @@ public enum AccionAudit
     CrearProfesional,
     EliminarDocumento,
     DesactivarProfesional,
+    ReactivarProfesional,
+    EliminarProfesionalDefinitivo,
     Login,
     LoginFallido,
     Logout,

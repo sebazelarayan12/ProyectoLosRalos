@@ -378,4 +378,89 @@ public class ProfesionalesControllerTests : IAsyncLifetime
         var resp = await _administrativoClient.DeleteAsync($"/api/v1/profesionales/{detalle!.Id}");
         resp.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
+
+    // --- PATCH /api/v1/profesionales/{id}/reactivar ---
+
+    [Fact]
+    public async Task Reactivar_ProfesionalDesactivado_Retorna204YVuelveAAparecerEnLista()
+    {
+        var created = await _adminClient.PostAsJsonAsync("/api/v1/profesionales",
+            BuildRequest(apellido: "Acosta", dni: "10.100.100", cuil: "20-10100100-0"));
+        var detalle = await created.Content.ReadFromJsonAsync<ProfesionalDetalleResponse>();
+        await _adminClient.DeleteAsync($"/api/v1/profesionales/{detalle!.Id}");
+
+        var resp = await _adminClient.PatchAsync($"/api/v1/profesionales/{detalle.Id}/reactivar", null);
+        resp.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        var listResp = await _adminClient.GetAsync("/api/v1/profesionales");
+        var list = await listResp.Content.ReadFromJsonAsync<JsonElement>();
+        var items = list.GetProperty("items").EnumerateArray()
+            .Select(x => x.GetProperty("id").GetString())
+            .ToList();
+        items.Should().Contain(detalle.Id.ToString());
+    }
+
+    [Fact]
+    public async Task Reactivar_NoExistente_Retorna404()
+    {
+        var resp = await _adminClient.PatchAsync($"/api/v1/profesionales/{Guid.NewGuid()}/reactivar", null);
+        resp.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task Reactivar_AdministrativoToken_Retorna204()
+    {
+        var created = await _adminClient.PostAsJsonAsync("/api/v1/profesionales",
+            BuildRequest(apellido: "Reyes", dni: "10.200.200", cuil: "20-10200200-0"));
+        var detalle = await created.Content.ReadFromJsonAsync<ProfesionalDetalleResponse>();
+        await _adminClient.DeleteAsync($"/api/v1/profesionales/{detalle!.Id}");
+
+        var resp = await _administrativoClient.PatchAsync($"/api/v1/profesionales/{detalle.Id}/reactivar", null);
+        resp.StatusCode.Should().Be(HttpStatusCode.NoContent);
+    }
+
+    // --- DELETE /api/v1/profesionales/{id}/definitivo ---
+
+    [Fact]
+    public async Task EliminarDefinitivo_SinDocumentos_Retorna204YNoExisteMas()
+    {
+        var created = await _adminClient.PostAsJsonAsync("/api/v1/profesionales",
+            BuildRequest(apellido: "Molina", dni: "10.300.300", cuil: "20-10300300-0"));
+        var detalle = await created.Content.ReadFromJsonAsync<ProfesionalDetalleResponse>();
+
+        var resp = await _adminClient.DeleteAsync($"/api/v1/profesionales/{detalle!.Id}/definitivo");
+        resp.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        var getResp = await _adminClient.GetAsync($"/api/v1/profesionales/{detalle.Id}");
+        getResp.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task EliminarDefinitivo_ConDocumentos_Retorna400ConMensajeClaro()
+    {
+        var created = await _adminClient.PostAsJsonAsync("/api/v1/profesionales",
+            BuildRequest(apellido: "Herrera", dni: "10.400.400", cuil: "20-10400400-0"));
+        var detalle = await created.Content.ReadFromJsonAsync<ProfesionalDetalleResponse>();
+
+        var uploadContent = new MultipartFormDataContent();
+        uploadContent.Add(new ByteArrayContent([0xFF, 0xD8, 0xFF, 0x00, 0x01, 0x02, 0x03]), "archivo", "foto.jpg");
+        uploadContent.Add(new StringContent("DNI"), "tipoDocumentoNombre");
+        await _adminClient.PostAsync($"/api/v1/profesionales/{detalle!.Id}/documentos", uploadContent);
+
+        var resp = await _adminClient.DeleteAsync($"/api/v1/profesionales/{detalle.Id}/definitivo");
+        resp.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var body = await resp.Content.ReadFromJsonAsync<JsonElement>();
+        body.GetProperty("message").GetString().Should().Contain("documentos cargados");
+
+        var getResp = await _adminClient.GetAsync($"/api/v1/profesionales/{detalle.Id}");
+        getResp.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task EliminarDefinitivo_NoExistente_Retorna404()
+    {
+        var resp = await _adminClient.DeleteAsync($"/api/v1/profesionales/{Guid.NewGuid()}/definitivo");
+        resp.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
 }

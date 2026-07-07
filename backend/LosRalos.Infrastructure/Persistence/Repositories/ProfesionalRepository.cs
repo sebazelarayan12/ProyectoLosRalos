@@ -106,4 +106,10 @@ public class ProfesionalRepository(AppDbContext db) : IProfesionalRepository
         db.Profesionales.Update(profesional);
         await db.SaveChangesAsync(ct).ConfigureAwait(false);
     }
+
+    public async Task DeleteAsync(Profesional profesional, CancellationToken ct)
+    {
+        db.Profesionales.Remove(profesional);
+        await db.SaveChangesAsync(ct).ConfigureAwait(false);
+    }
 }

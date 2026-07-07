@@ -41,6 +41,7 @@ export function PerfilProfesionalPage() {
   return (
     <div className="flex flex-col gap-4 p-4">
       <PerfilTopbar
+        id={id!}
         apellido={profesional.apellido}
         nombre={profesional.nombre}
         nroExpediente={profesional.nroExpediente}

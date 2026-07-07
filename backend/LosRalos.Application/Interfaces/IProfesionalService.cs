@@ -25,4 +25,12 @@ public interface IProfesionalService
     Task DeactivateAsync(
         Guid id, Guid usuarioId, string nombreUsuario, string? ip,
         CancellationToken ct = default);
+
+    Task ReactivarAsync(
+        Guid id, Guid usuarioId, string nombreUsuario, string? ip,
+        CancellationToken ct = default);
+
+    Task EliminarDefinitivoAsync(
+        Guid id, Guid usuarioId, string nombreUsuario, string? ip,
+        CancellationToken ct = default);
 }

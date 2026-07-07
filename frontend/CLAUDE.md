@@ -163,3 +163,14 @@ el rol de accesibilidad `nav`) en lugar de `PaginationLink`. El historial de cur
 se maneja con una pila en el estado del componente (`historial: (string | undefined)[]`), reseteada
 en los handlers de cambio de apellido/filtros (no en `useEffect` — sigue el patron
 `rerender-move-effect-to-event` de vercel-react-best-practices).
+
+## Invalidar tambien el listado cuando una mutacion cambia campos filtrados por el backend (Paso 12)
+
+Si un endpoint de busqueda filtra por un campo (ej: `ProfesionalRepository.SearchAsync` hace
+`Where(p => p.Activo)`), cualquier mutacion que cambie ese campo (desactivar/reactivar/eliminar)
+tiene que invalidar tambien el query key del listado (`['profesionales']`), no solo el del detalle
+(`['profesional', id]`). Los hooks de listado (`useProfesionales`, etc.) usan `staleTime` de 2
+minutos — sin invalidar el listado, un registro recien desactivado/eliminado queda "fantasma" en la
+busqueda hasta que el cache expire solo. `react-doctor` (`query-mutation-missing-invalidation`) lo
+detecta — no asumir falso positivo sin verificar si el campo mutado se usa como filtro en el
+listado.

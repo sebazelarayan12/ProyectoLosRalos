@@ -141,4 +141,55 @@ public class ProfesionalService(
 
         logger.LogInformation("Profesional {ProfesionalId} desactivado por {UsuarioId}", id, usuarioId);
     }
+
+    public async Task ReactivarAsync(
+        Guid id, Guid usuarioId, string nombreUsuario, string? ip, CancellationToken ct = default)
+    {
+        var profesional = await repo.GetByIdAsync(id, ct).ConfigureAwait(false)
+            ?? throw new NotFoundException("Profesional no encontrado");
+
+        profesional.Activo = true;
+
+        await repo.UpdateAsync(profesional, ct).ConfigureAwait(false);
+
+        await auditRepo.AddAsync(new AuditLog
+        {
+            Id = Guid.NewGuid(),
+            UsuarioId = usuarioId,
+            NombreUsuario = nombreUsuario,
+            Accion = AccionAudit.ReactivarProfesional,
+            ProfesionalId = profesional.Id,
+            Timestamp = DateTime.UtcNow,
+            IpOrigen = ip
+        }, ct).ConfigureAwait(false);
+
+        logger.LogInformation("Profesional {ProfesionalId} reactivado por {UsuarioId}", id, usuarioId);
+    }
+
+    public async Task EliminarDefinitivoAsync(
+        Guid id, Guid usuarioId, string nombreUsuario, string? ip, CancellationToken ct = default)
+    {
+        var profesional = await repo.GetByIdAsync(id, ct).ConfigureAwait(false)
+            ?? throw new NotFoundException("Profesional no encontrado");
+
+        if (profesional.Documentos.Count > 0)
+            throw new AppValidationException("documentos",
+                "No se puede eliminar: el profesional tiene documentos cargados. Elimine los documentos primero.");
+
+        await auditRepo.AddAsync(new AuditLog
+        {
+            Id = Guid.NewGuid(),
+            UsuarioId = usuarioId,
+            NombreUsuario = nombreUsuario,
+            Accion = AccionAudit.EliminarProfesionalDefinitivo,
+            ProfesionalId = profesional.Id,
+            DetalleExtra = $"{profesional.Apellido}, {profesional.Nombre}, DNI {profesional.Dni}",
+            Timestamp = DateTime.UtcNow,
+            IpOrigen = ip
+        }, ct).ConfigureAwait(false);
+
+        await repo.DeleteAsync(profesional, ct).ConfigureAwait(false);
+
+        logger.LogInformation("Profesional {ProfesionalId} eliminado definitivamente por {UsuarioId}", id, usuarioId);
+    }
 }

@@ -212,4 +212,90 @@ public class ProfesionalServiceTests
 
         await act.Should().ThrowAsync<NotFoundException>();
     }
+
+    [Fact]
+    public async Task Reactivar_ProfesionalDesactivado_ReactivaYRegistraAudit()
+    {
+        var profesional = ProfesionalActivo();
+        profesional.Activo = false;
+        _repo.GetByIdAsync(profesional.Id, Arg.Any<CancellationToken>()).Returns(profesional);
+
+        await CrearServicio().ReactivarAsync(profesional.Id, UsuarioId, NombreUsuario, null);
+
+        await _repo.Received(1).UpdateAsync(
+            Arg.Is<Profesional>(p => p.Activo),
+            Arg.Any<CancellationToken>());
+
+        await _auditRepo.Received(1).AddAsync(
+            Arg.Is<AuditLog>(a =>
+                a.Accion == AccionAudit.ReactivarProfesional &&
+                a.ProfesionalId == profesional.Id));
+    }
+
+    [Fact]
+    public async Task Reactivar_ProfesionalNoExistente_LanzaNotFoundException()
+    {
+        var id = Guid.NewGuid();
+        _repo.GetByIdAsync(id, Arg.Any<CancellationToken>()).Returns((Profesional?)null);
+
+        var act = () => CrearServicio().ReactivarAsync(id, UsuarioId, NombreUsuario, null);
+
+        await act.Should().ThrowAsync<NotFoundException>();
+    }
+
+    [Fact]
+    public async Task EliminarDefinitivo_SinDocumentos_BorraYRegistraAudit()
+    {
+        var profesional = ProfesionalActivo();
+        _repo.GetByIdAsync(profesional.Id, Arg.Any<CancellationToken>()).Returns(profesional);
+
+        await CrearServicio().EliminarDefinitivoAsync(profesional.Id, UsuarioId, NombreUsuario, null);
+
+        await _repo.Received(1).DeleteAsync(
+            Arg.Is<Profesional>(p => p.Id == profesional.Id),
+            Arg.Any<CancellationToken>());
+
+        await _auditRepo.Received(1).AddAsync(
+            Arg.Is<AuditLog>(a =>
+                a.Accion == AccionAudit.EliminarProfesionalDefinitivo &&
+                a.ProfesionalId == profesional.Id &&
+                a.DetalleExtra!.Contains(profesional.Dni)));
+    }
+
+    [Fact]
+    public async Task EliminarDefinitivo_ConDocumentos_LanzaAppValidationExceptionYNoBorra()
+    {
+        var profesional = ProfesionalActivo();
+        profesional.Documentos.Add(new Documento
+        {
+            Id = Guid.NewGuid(),
+            ProfesionalId = profesional.Id,
+            TipoDocumentoId = Guid.NewGuid(),
+            UrlArchivo = "x",
+            NombreOriginal = "x.pdf",
+            ContentType = "application/pdf",
+            TamanioBytes = 1,
+            FechaCarga = DateTime.UtcNow,
+            CargadoPorId = Guid.NewGuid()
+        });
+        _repo.GetByIdAsync(profesional.Id, Arg.Any<CancellationToken>()).Returns(profesional);
+
+        var act = () => CrearServicio().EliminarDefinitivoAsync(profesional.Id, UsuarioId, NombreUsuario, null);
+
+        await act.Should().ThrowAsync<AppValidationException>();
+
+        await _repo.DidNotReceive().DeleteAsync(Arg.Any<Profesional>(), Arg.Any<CancellationToken>());
+        await _auditRepo.DidNotReceive().AddAsync(Arg.Any<AuditLog>());
+    }
+
+    [Fact]
+    public async Task EliminarDefinitivo_ProfesionalNoExistente_LanzaNotFoundException()
+    {
+        var id = Guid.NewGuid();
+        _repo.GetByIdAsync(id, Arg.Any<CancellationToken>()).Returns((Profesional?)null);
+
+        var act = () => CrearServicio().EliminarDefinitivoAsync(id, UsuarioId, NombreUsuario, null);
+
+        await act.Should().ThrowAsync<NotFoundException>();
+    }
 }
