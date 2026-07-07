@@ -19,11 +19,12 @@ public class ProfesionalesController(IProfesionalService service, IDocumentoServ
         [FromQuery] string? busqueda,
         [FromQuery] TipoLegajo? tipo,
         [FromQuery] Planta? planta,
+        [FromQuery] EstadoProfesionalFiltro? estado,
         [FromQuery] string? cursor,
         [FromQuery] int porPagina = 20,
         CancellationToken ct = default)
     {
-        var result = await service.SearchAsync(busqueda, tipo, planta, cursor, porPagina, ct)
+        var result = await service.SearchAsync(busqueda, tipo, planta, estado, cursor, porPagina, ct)
             .ConfigureAwait(false);
         return Ok(result);
     }

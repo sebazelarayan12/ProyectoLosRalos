@@ -26,6 +26,7 @@ export function BusquedaProfesionalesPage() {
     busqueda: deferredBusqueda || undefined,
     tipo: filtros.tipo,
     planta: filtros.planta,
+    estado: filtros.estado,
     cursor,
     porPagina: 20,
   })

@@ -30,10 +30,15 @@ public class ProfesionalRepository(AppDbContext db) : IProfesionalRepository
     }
 
     public async Task<(List<Profesional> Items, string? NextCursor)> SearchAsync(
-        string? busqueda, TipoLegajo? tipo, Planta? planta,
+        string? busqueda, TipoLegajo? tipo, Planta? planta, EstadoProfesionalFiltro? estado,
         string? cursor, int porPagina, CancellationToken ct)
     {
-        IQueryable<Profesional> q = db.Profesionales.Where(p => p.Activo);
+        IQueryable<Profesional> q = (estado ?? EstadoProfesionalFiltro.Activos) switch
+        {
+            EstadoProfesionalFiltro.Inactivos => db.Profesionales.Where(p => !p.Activo),
+            EstadoProfesionalFiltro.Todos => db.Profesionales,
+            _ => db.Profesionales.Where(p => p.Activo)
+        };
 
         if (!string.IsNullOrWhiteSpace(busqueda))
             q = q.Where(p =>

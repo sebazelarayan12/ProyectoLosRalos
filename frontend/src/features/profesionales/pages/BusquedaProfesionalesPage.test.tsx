@@ -145,6 +145,27 @@ describe('BusquedaProfesionalesPage', () => {
     })
   })
 
+  test('elegir un filtro de estado lo manda como param y resetea la paginacion', async () => {
+    setUsuario('Administrativo')
+    vi.mocked(api.get).mockResolvedValue({ data: respuestaConResultados })
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByText('Perez, Ana')
+
+    await user.click(screen.getByRole('button', { name: /^filtros$/i }))
+    await user.click(screen.getByRole('combobox', { name: /estado/i }))
+    await user.click(await screen.findByRole('option', { name: /^inactivos$/i }))
+
+    await waitFor(() => {
+      expect(api.get).toHaveBeenCalledWith(
+        '/profesionales',
+        expect.objectContaining({
+          params: expect.objectContaining({ estado: 'Inactivos', cursor: undefined }),
+        }),
+      )
+    })
+  })
+
   test('Siguiente pide la proxima pagina con el cursor devuelto', async () => {
     setUsuario('Administrativo')
     vi.mocked(api.get).mockResolvedValue({

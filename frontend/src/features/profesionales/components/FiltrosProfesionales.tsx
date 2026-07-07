@@ -8,11 +8,12 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet'
 import { SelectField } from '@/components/SelectField'
-import type { Planta, TipoLegajo } from '../api/buscarProfesionales'
+import type { EstadoProfesionalFiltro, Planta, TipoLegajo } from '../api/buscarProfesionales'
 
 export type Filtros = {
   tipo?: TipoLegajo
   planta?: Planta
+  estado?: EstadoProfesionalFiltro
 }
 
 type FiltrosProfesionalesProps = {
@@ -31,8 +32,14 @@ const OPCIONES_PLANTA = [
   { value: 'PermanenteEfectivo', label: 'Permanente Efectivo' },
 ]
 
+const OPCIONES_ESTADO = [
+  { value: 'Activos', label: 'Activos' },
+  { value: 'Inactivos', label: 'Inactivos' },
+  { value: 'Todos', label: 'Todos' },
+]
+
 export function FiltrosProfesionales({ filtros, onFiltrosChange }: FiltrosProfesionalesProps) {
-  const cantidadActivos = [filtros.tipo, filtros.planta].filter(Boolean).length
+  const cantidadActivos = [filtros.tipo, filtros.planta, filtros.estado].filter(Boolean).length
 
   return (
     <Sheet>
@@ -67,7 +74,18 @@ export function FiltrosProfesionales({ filtros, onFiltrosChange }: FiltrosProfes
             onValueChange={(planta) => onFiltrosChange({ ...filtros, planta: planta as Planta })}
             options={OPCIONES_PLANTA}
           />
-          <Button variant="ghost" onClick={() => onFiltrosChange({ tipo: undefined, planta: undefined })}>
+          <SelectField
+            id="filtro-estado"
+            label="Estado"
+            placeholder="Activos"
+            value={filtros.estado}
+            onValueChange={(estado) => onFiltrosChange({ ...filtros, estado: estado as EstadoProfesionalFiltro })}
+            options={OPCIONES_ESTADO}
+          />
+          <Button
+            variant="ghost"
+            onClick={() => onFiltrosChange({ tipo: undefined, planta: undefined, estado: undefined })}
+          >
             Limpiar filtros
           </Button>
         </FieldGroup>

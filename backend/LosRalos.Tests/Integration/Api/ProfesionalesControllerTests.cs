@@ -163,6 +163,64 @@ public class ProfesionalesControllerTests : IAsyncLifetime
         body.GetProperty("hasNextPage").GetBoolean().Should().BeFalse();
     }
 
+    [Fact]
+    public async Task Search_SinEstado_NoIncluyeDesactivados()
+    {
+        var created = await _adminClient.PostAsJsonAsync("/api/v1/profesionales",
+            BuildRequest(apellido: "FiltroSinEstado", dni: "10.500.500", cuil: "20-10500500-0"));
+        var detalle = await created.Content.ReadFromJsonAsync<ProfesionalDetalleResponse>();
+        await _adminClient.DeleteAsync($"/api/v1/profesionales/{detalle!.Id}");
+
+        var resp = await _adminClient.GetAsync("/api/v1/profesionales");
+        var body = await resp.Content.ReadFromJsonAsync<JsonElement>();
+        var ids = body.GetProperty("items").EnumerateArray()
+            .Select(x => x.GetProperty("id").GetString()).ToList();
+
+        ids.Should().NotContain(detalle.Id.ToString());
+    }
+
+    [Fact]
+    public async Task Search_EstadoInactivos_SoloIncluyeDesactivados()
+    {
+        var activo = await _adminClient.PostAsJsonAsync("/api/v1/profesionales",
+            BuildRequest(apellido: "FiltroActivo", dni: "10.600.600", cuil: "20-10600600-0"));
+        var detalleActivo = await activo.Content.ReadFromJsonAsync<ProfesionalDetalleResponse>();
+
+        var inactivo = await _adminClient.PostAsJsonAsync("/api/v1/profesionales",
+            BuildRequest(apellido: "FiltroInactivo", dni: "10.700.700", cuil: "20-10700700-0"));
+        var detalleInactivo = await inactivo.Content.ReadFromJsonAsync<ProfesionalDetalleResponse>();
+        await _adminClient.DeleteAsync($"/api/v1/profesionales/{detalleInactivo!.Id}");
+
+        var resp = await _adminClient.GetAsync("/api/v1/profesionales?estado=Inactivos");
+        var body = await resp.Content.ReadFromJsonAsync<JsonElement>();
+        var ids = body.GetProperty("items").EnumerateArray()
+            .Select(x => x.GetProperty("id").GetString()).ToList();
+
+        ids.Should().Contain(detalleInactivo.Id.ToString());
+        ids.Should().NotContain(detalleActivo!.Id.ToString());
+    }
+
+    [Fact]
+    public async Task Search_EstadoTodos_IncluyeActivosYDesactivados()
+    {
+        var activo = await _adminClient.PostAsJsonAsync("/api/v1/profesionales",
+            BuildRequest(apellido: "FiltroTodosActivo", dni: "10.800.800", cuil: "20-10800800-0"));
+        var detalleActivo = await activo.Content.ReadFromJsonAsync<ProfesionalDetalleResponse>();
+
+        var inactivo = await _adminClient.PostAsJsonAsync("/api/v1/profesionales",
+            BuildRequest(apellido: "FiltroTodosInactivo", dni: "10.900.900", cuil: "20-10900900-0"));
+        var detalleInactivo = await inactivo.Content.ReadFromJsonAsync<ProfesionalDetalleResponse>();
+        await _adminClient.DeleteAsync($"/api/v1/profesionales/{detalleInactivo!.Id}");
+
+        var resp = await _adminClient.GetAsync("/api/v1/profesionales?estado=Todos");
+        var body = await resp.Content.ReadFromJsonAsync<JsonElement>();
+        var ids = body.GetProperty("items").EnumerateArray()
+            .Select(x => x.GetProperty("id").GetString()).ToList();
+
+        ids.Should().Contain(detalleActivo!.Id.ToString());
+        ids.Should().Contain(detalleInactivo.Id.ToString());
+    }
+
     // --- POST /api/v1/profesionales ---
 
     [Fact]
