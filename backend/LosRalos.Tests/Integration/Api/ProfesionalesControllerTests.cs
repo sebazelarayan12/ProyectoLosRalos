@@ -242,7 +242,7 @@ public class ProfesionalesControllerTests : IAsyncLifetime
         resp.Headers.Location.Should().NotBeNull();
 
         var body = await resp.Content.ReadFromJsonAsync<ProfesionalDetalleResponse>();
-        body!.Apellido.Should().Be("Garcia");
+        body!.Apellido.Should().Be("GARCIA");
         body.Dni.Should().Be("12.345.678");
     }
 
@@ -309,7 +309,7 @@ public class ProfesionalesControllerTests : IAsyncLifetime
 
         resp.StatusCode.Should().Be(HttpStatusCode.OK);
         var body = await resp.Content.ReadFromJsonAsync<ProfesionalDetalleResponse>();
-        body!.Apellido.Should().Be("Romero");
+        body!.Apellido.Should().Be("ROMERO");
     }
 
     [Fact]

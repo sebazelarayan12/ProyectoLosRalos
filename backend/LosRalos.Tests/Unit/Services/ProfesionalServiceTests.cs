@@ -144,15 +144,38 @@ public class ProfesionalServiceTests
 
         var result = await CrearServicio().CreateAsync(req, UsuarioId, NombreUsuario, "1.2.3.4");
 
-        result.Apellido.Should().Be(req.Apellido);
+        result.Apellido.Should().Be(req.Apellido.ToUpperInvariant());
         result.Dni.Should().Be(req.Dni);
 
         await _repo.Received(1).AddAsync(
-            Arg.Is<Profesional>(p => p.Apellido == req.Apellido && p.Dni == req.Dni),
+            Arg.Is<Profesional>(p => p.Apellido == req.Apellido.ToUpperInvariant() && p.Dni == req.Dni),
             Arg.Any<CancellationToken>());
 
         await _auditRepo.Received(1).AddAsync(
             Arg.Is<AuditLog>(a => a.Accion == AccionAudit.CrearProfesional && a.UsuarioId == UsuarioId));
+    }
+
+    [Fact]
+    public async Task Create_CamposTexto_NormalizaAMayusculas()
+    {
+        var req = RequestValido();
+        req.Apellido = "Rodriguez";
+        req.Nombre = "juan Carlos";
+        req.Domicilio = "  Av. siempre Viva 742  ";
+        req.Localidad = "los ralos";
+        req.Provincia = "tucuman";
+        req.Matricula = "mp-1234";
+        _repo.ExistsDniAsync(req.Dni, null, Arg.Any<CancellationToken>()).Returns(false);
+        _repo.ExistsCuilAsync(req.Cuil, null, Arg.Any<CancellationToken>()).Returns(false);
+
+        var result = await CrearServicio().CreateAsync(req, UsuarioId, NombreUsuario, "1.2.3.4");
+
+        result.Apellido.Should().Be("RODRIGUEZ");
+        result.Nombre.Should().Be("JUAN CARLOS");
+        result.Domicilio.Should().Be("AV. SIEMPRE VIVA 742");
+        result.Localidad.Should().Be("LOS RALOS");
+        result.Provincia.Should().Be("TUCUMAN");
+        result.Matricula.Should().Be("MP-1234");
     }
 
     [Fact]
@@ -227,11 +250,11 @@ public class ProfesionalServiceTests
 
         var result = await CrearServicio().UpdateAsync(profesional.Id, req, UsuarioId, NombreUsuario, null);
 
-        result.Apellido.Should().Be("NuevoApellido");
+        result.Apellido.Should().Be("NUEVOAPELLIDO");
         result.Cargo.Should().Be("NUEVOCARGO");
 
         await _repo.Received(1).UpdateAsync(
-            Arg.Is<Profesional>(p => p.Apellido == "NuevoApellido"),
+            Arg.Is<Profesional>(p => p.Apellido == "NUEVOAPELLIDO"),
             Arg.Any<CancellationToken>());
 
         await _auditRepo.Received(1).AddAsync(

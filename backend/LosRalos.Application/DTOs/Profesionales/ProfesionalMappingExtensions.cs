@@ -4,6 +4,12 @@ namespace LosRalos.Application.DTOs.Profesionales;
 
 public static class ProfesionalMappingExtensions
 {
+    private static string Mayusculas(string s) => s.Trim().ToUpperInvariant();
+
+    [return: System.Diagnostics.CodeAnalysis.NotNullIfNotNull(nameof(s))]
+    private static string? MayusculasOpcional(string? s) => s is null ? null : Mayusculas(s);
+
+
     public static ProfesionalDetalleResponse ToDetalleResponse(this Profesional p) => new()
     {
         Id = p.Id,
@@ -57,21 +63,21 @@ public static class ProfesionalMappingExtensions
     public static Profesional ToEntity(this ProfesionalRequest req, Cargo cargo, AreaOperativa areaOperativa) => new()
     {
         Id = Guid.NewGuid(),
-        Apellido = req.Apellido,
-        Nombre = req.Nombre,
+        Apellido = Mayusculas(req.Apellido),
+        Nombre = Mayusculas(req.Nombre),
         Dni = req.Dni,
         Cuil = req.Cuil,
         FechaNacimiento = req.FechaNacimiento,
         Sexo = req.Sexo,
         EstadoCivil = req.EstadoCivil,
-        Domicilio = req.Domicilio,
-        Barrio = req.Barrio,
-        Localidad = req.Localidad,
-        Provincia = req.Provincia,
+        Domicilio = Mayusculas(req.Domicilio),
+        Barrio = MayusculasOpcional(req.Barrio),
+        Localidad = Mayusculas(req.Localidad),
+        Provincia = Mayusculas(req.Provincia),
         CodigoPostal = req.CodigoPostal,
         Telefono = req.Telefono,
         Email = req.Email,
-        Matricula = req.Matricula,
+        Matricula = MayusculasOpcional(req.Matricula),
         Cargo = cargo,
         CargoId = cargo.Id,
         AreaOperativa = areaOperativa,
@@ -79,7 +85,7 @@ public static class ProfesionalMappingExtensions
         TipoEfector = req.TipoEfector,
         Nivel = req.Nivel,
         Planta = req.Planta,
-        NroExpediente = req.NroExpediente,
+        NroExpediente = MayusculasOpcional(req.NroExpediente),
         Tipo = req.Tipo,
         Activo = true,
         FechaCreacion = DateTime.UtcNow,
@@ -90,11 +96,11 @@ public static class ProfesionalMappingExtensions
     {
         var changed = new List<string>();
 
-        if (req.Apellido is not null && req.Apellido != p.Apellido)
-        { p.Apellido = req.Apellido; changed.Add(nameof(Profesional.Apellido)); }
+        if (req.Apellido is not null && Mayusculas(req.Apellido) != p.Apellido)
+        { p.Apellido = Mayusculas(req.Apellido); changed.Add(nameof(Profesional.Apellido)); }
 
-        if (req.Nombre is not null && req.Nombre != p.Nombre)
-        { p.Nombre = req.Nombre; changed.Add(nameof(Profesional.Nombre)); }
+        if (req.Nombre is not null && Mayusculas(req.Nombre) != p.Nombre)
+        { p.Nombre = Mayusculas(req.Nombre); changed.Add(nameof(Profesional.Nombre)); }
 
         if (req.Dni is not null && req.Dni != p.Dni)
         { p.Dni = req.Dni; changed.Add(nameof(Profesional.Dni)); }
@@ -111,17 +117,17 @@ public static class ProfesionalMappingExtensions
         if (req.EstadoCivil.HasValue && req.EstadoCivil.Value != p.EstadoCivil)
         { p.EstadoCivil = req.EstadoCivil.Value; changed.Add(nameof(Profesional.EstadoCivil)); }
 
-        if (req.Domicilio is not null && req.Domicilio != p.Domicilio)
-        { p.Domicilio = req.Domicilio; changed.Add(nameof(Profesional.Domicilio)); }
+        if (req.Domicilio is not null && Mayusculas(req.Domicilio) != p.Domicilio)
+        { p.Domicilio = Mayusculas(req.Domicilio); changed.Add(nameof(Profesional.Domicilio)); }
 
-        if (req.Barrio is not null && req.Barrio != p.Barrio)
-        { p.Barrio = req.Barrio; changed.Add(nameof(Profesional.Barrio)); }
+        if (req.Barrio is not null && Mayusculas(req.Barrio) != p.Barrio)
+        { p.Barrio = Mayusculas(req.Barrio); changed.Add(nameof(Profesional.Barrio)); }
 
-        if (req.Localidad is not null && req.Localidad != p.Localidad)
-        { p.Localidad = req.Localidad; changed.Add(nameof(Profesional.Localidad)); }
+        if (req.Localidad is not null && Mayusculas(req.Localidad) != p.Localidad)
+        { p.Localidad = Mayusculas(req.Localidad); changed.Add(nameof(Profesional.Localidad)); }
 
-        if (req.Provincia is not null && req.Provincia != p.Provincia)
-        { p.Provincia = req.Provincia; changed.Add(nameof(Profesional.Provincia)); }
+        if (req.Provincia is not null && Mayusculas(req.Provincia) != p.Provincia)
+        { p.Provincia = Mayusculas(req.Provincia); changed.Add(nameof(Profesional.Provincia)); }
 
         if (req.CodigoPostal is not null && req.CodigoPostal != p.CodigoPostal)
         { p.CodigoPostal = req.CodigoPostal; changed.Add(nameof(Profesional.CodigoPostal)); }
@@ -132,8 +138,8 @@ public static class ProfesionalMappingExtensions
         if (req.Email is not null && req.Email != p.Email)
         { p.Email = req.Email; changed.Add(nameof(Profesional.Email)); }
 
-        if (req.Matricula is not null && req.Matricula != p.Matricula)
-        { p.Matricula = req.Matricula; changed.Add(nameof(Profesional.Matricula)); }
+        if (req.Matricula is not null && Mayusculas(req.Matricula) != p.Matricula)
+        { p.Matricula = Mayusculas(req.Matricula); changed.Add(nameof(Profesional.Matricula)); }
 
         if (cargo is not null && cargo.Id != p.CargoId)
         { p.Cargo = cargo; p.CargoId = cargo.Id; changed.Add(nameof(Profesional.Cargo)); }
@@ -150,8 +156,8 @@ public static class ProfesionalMappingExtensions
         if (req.Planta.HasValue && req.Planta.Value != p.Planta)
         { p.Planta = req.Planta.Value; changed.Add(nameof(Profesional.Planta)); }
 
-        if (req.NroExpediente is not null && req.NroExpediente != p.NroExpediente)
-        { p.NroExpediente = req.NroExpediente; changed.Add(nameof(Profesional.NroExpediente)); }
+        if (req.NroExpediente is not null && Mayusculas(req.NroExpediente) != p.NroExpediente)
+        { p.NroExpediente = Mayusculas(req.NroExpediente); changed.Add(nameof(Profesional.NroExpediente)); }
 
         if (req.Tipo.HasValue && req.Tipo.Value != p.Tipo)
         { p.Tipo = req.Tipo.Value; changed.Add(nameof(Profesional.Tipo)); }
