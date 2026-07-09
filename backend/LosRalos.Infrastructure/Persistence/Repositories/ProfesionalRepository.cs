@@ -9,12 +9,17 @@ namespace LosRalos.Infrastructure.Persistence.Repositories;
 
 public class ProfesionalRepository(AppDbContext db) : IProfesionalRepository
 {
-    // Cursor encodes (Apellido, FechaCreacion) — DateTime translates to SQL, string.Compare also supported
-    private record CursorData(string Apellido, DateTime FechaCreacion);
+    // Cursor encodes (Apellido, FechaCreacion) para orden por Apellido, o (Dni) para orden por Dni
+    // (Dni es unico, no necesita tiebreak). El largo del Dni (7 u 8 digitos) entra en la comparacion
+    // para que el orden numerico no se confunda con orden lexicografico (ver OrdenNumericoDni abajo).
+    private record CursorData(string? Apellido, DateTime? FechaCreacion, string? Dni);
 
-    private static string EncodeCursor(Profesional last)
+    private static string EncodeCursor(Profesional last, OrdenarPor ordenarPor)
     {
-        var json = JsonSerializer.Serialize(new CursorData(last.Apellido, last.FechaCreacion));
+        var data = ordenarPor is OrdenarPor.DniAsc or OrdenarPor.DniDesc
+            ? new CursorData(null, null, last.Dni)
+            : new CursorData(last.Apellido, last.FechaCreacion, null);
+        var json = JsonSerializer.Serialize(data);
         return Convert.ToBase64String(Encoding.UTF8.GetBytes(json));
     }
 
@@ -30,7 +35,8 @@ public class ProfesionalRepository(AppDbContext db) : IProfesionalRepository
     }
 
     public async Task<(List<Profesional> Items, string? NextCursor)> SearchAsync(
-        string? busqueda, TipoLegajo? tipo, Planta? planta, EstadoProfesionalFiltro? estado,
+        string? busqueda, TipoLegajo? tipo, Guid? areaOperativaId, TipoEfector? tipoEfector,
+        EstadoProfesionalFiltro? estado, OrdenarPor ordenarPor,
         string? cursor, int porPagina, CancellationToken ct)
     {
         IQueryable<Profesional> q = (estado ?? EstadoProfesionalFiltro.Activos) switch
@@ -50,23 +56,43 @@ public class ProfesionalRepository(AppDbContext db) : IProfesionalRepository
         if (tipo.HasValue)
             q = q.Where(p => p.Tipo == tipo.Value);
 
-        if (planta.HasValue)
-            q = q.Where(p => p.Planta == planta.Value);
+        if (areaOperativaId.HasValue)
+            q = q.Where(p => p.AreaOperativaId == areaOperativaId.Value);
+
+        if (tipoEfector.HasValue)
+            q = q.Where(p => p.TipoEfector == tipoEfector.Value);
 
         var cursorData = DecodeCursor(cursor);
-        if (cursorData is not null)
+
+        if (ordenarPor is OrdenarPor.DniAsc or OrdenarPor.DniDesc)
         {
-            var ca = cursorData.Apellido;
-            var cf = cursorData.FechaCreacion;
-            q = q.Where(p =>
-                string.Compare(p.Apellido, ca) > 0 ||
-                (p.Apellido == ca && p.FechaCreacion > cf));
+            if (cursorData?.Dni is { } cDni)
+            {
+                q = ordenarPor == OrdenarPor.DniAsc
+                    ? q.Where(p => p.Dni.Length > cDni.Length || (p.Dni.Length == cDni.Length && string.Compare(p.Dni, cDni) > 0))
+                    : q.Where(p => p.Dni.Length < cDni.Length || (p.Dni.Length == cDni.Length && string.Compare(p.Dni, cDni) < 0));
+            }
+
+            q = ordenarPor == OrdenarPor.DniAsc
+                ? q.OrderBy(p => p.Dni.Length).ThenBy(p => p.Dni)
+                : q.OrderByDescending(p => p.Dni.Length).ThenByDescending(p => p.Dni);
+        }
+        else
+        {
+            if (cursorData is { Apellido: { } ca, FechaCreacion: { } cf })
+            {
+                q = ordenarPor == OrdenarPor.ApellidoAsc
+                    ? q.Where(p => string.Compare(p.Apellido, ca) > 0 || (p.Apellido == ca && p.FechaCreacion > cf))
+                    : q.Where(p => string.Compare(p.Apellido, ca) < 0 || (p.Apellido == ca && p.FechaCreacion > cf));
+            }
+
+            q = ordenarPor == OrdenarPor.ApellidoAsc
+                ? q.OrderBy(p => p.Apellido).ThenBy(p => p.FechaCreacion)
+                : q.OrderByDescending(p => p.Apellido).ThenBy(p => p.FechaCreacion);
         }
 
         var items = await q
             .Include(p => p.Cargo)
-            .OrderBy(p => p.Apellido)
-            .ThenBy(p => p.FechaCreacion)
             .Take(porPagina + 1)
             .AsNoTracking()
             .ToListAsync(ct)
@@ -76,7 +102,7 @@ public class ProfesionalRepository(AppDbContext db) : IProfesionalRepository
             return (items, null);
 
         var page = items.Take(porPagina).ToList();
-        return (page, EncodeCursor(page[^1]));
+        return (page, EncodeCursor(page[^1], ordenarPor));
     }
 
     public async Task<Profesional?> GetByIdAsync(Guid id, CancellationToken ct)

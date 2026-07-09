@@ -2,13 +2,17 @@ import type { AxiosInstance } from 'axios'
 
 export type TipoLegajo = 'Asistencial' | 'NoAsistencial' | 'CP'
 export type Planta = 'Transitorio' | 'PermanenteInterino' | 'PermanenteEfectivo'
+export type TipoEfector = 'Hospital' | 'CAPS'
 export type EstadoProfesionalFiltro = 'Activos' | 'Inactivos' | 'Todos'
+export type OrdenarPor = 'ApellidoAsc' | 'ApellidoDesc' | 'DniAsc' | 'DniDesc'
 
 export type BuscarProfesionalesParams = {
   busqueda?: string
   tipo?: TipoLegajo
-  planta?: Planta
+  areaOperativaId?: string
+  tipoEfector?: TipoEfector
   estado?: EstadoProfesionalFiltro
+  ordenarPor?: OrdenarPor
   cursor?: string
   porPagina: number
 }

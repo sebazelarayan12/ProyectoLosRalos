@@ -8,11 +8,13 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet'
 import { SelectField } from '@/components/SelectField'
-import type { EstadoProfesionalFiltro, Planta, TipoLegajo } from '../api/buscarProfesionales'
+import { useAreasOperativas } from '../hooks/useAreasOperativas'
+import type { EstadoProfesionalFiltro, TipoEfector, TipoLegajo } from '../api/buscarProfesionales'
 
 export type Filtros = {
   tipo?: TipoLegajo
-  planta?: Planta
+  areaOperativaId?: string
+  tipoEfector?: TipoEfector
   estado?: EstadoProfesionalFiltro
 }
 
@@ -27,10 +29,9 @@ const OPCIONES_TIPO = [
   { value: 'CP', label: 'Cobertura de servicio (CP)' },
 ]
 
-const OPCIONES_PLANTA = [
-  { value: 'Transitorio', label: 'Transitorio' },
-  { value: 'PermanenteInterino', label: 'Permanente Interino' },
-  { value: 'PermanenteEfectivo', label: 'Permanente Efectivo' },
+const OPCIONES_TIPO_EFECTOR = [
+  { value: 'Hospital', label: 'Hospital' },
+  { value: 'CAPS', label: 'CAPS' },
 ]
 
 const OPCIONES_ESTADO = [
@@ -40,7 +41,12 @@ const OPCIONES_ESTADO = [
 ]
 
 export function FiltrosProfesionales({ filtros, onFiltrosChange }: FiltrosProfesionalesProps) {
-  const cantidadActivos = [filtros.tipo, filtros.planta, filtros.estado].filter(Boolean).length
+  const { data: areasOperativas = [] } = useAreasOperativas()
+  const opcionesAreaOperativa = areasOperativas.map((a) => ({ value: a.id, label: a.nombre }))
+
+  const cantidadActivos = [filtros.tipo, filtros.areaOperativaId, filtros.tipoEfector, filtros.estado].filter(
+    Boolean,
+  ).length
 
   return (
     <Sheet>
@@ -68,12 +74,22 @@ export function FiltrosProfesionales({ filtros, onFiltrosChange }: FiltrosProfes
             options={OPCIONES_TIPO}
           />
           <SelectField
-            id="filtro-planta"
-            label="Planta"
+            id="filtro-area-operativa"
+            label="Area operativa"
             placeholder="Todas"
-            value={filtros.planta}
-            onValueChange={(planta) => onFiltrosChange({ ...filtros, planta: planta as Planta })}
-            options={OPCIONES_PLANTA}
+            value={filtros.areaOperativaId}
+            onValueChange={(areaOperativaId) => onFiltrosChange({ ...filtros, areaOperativaId })}
+            options={opcionesAreaOperativa}
+          />
+          <SelectField
+            id="filtro-tipo-efector"
+            label="Tipo de efector"
+            placeholder="Todos"
+            value={filtros.tipoEfector}
+            onValueChange={(tipoEfector) =>
+              onFiltrosChange({ ...filtros, tipoEfector: tipoEfector as TipoEfector })
+            }
+            options={OPCIONES_TIPO_EFECTOR}
           />
           <SelectField
             id="filtro-estado"
@@ -85,7 +101,9 @@ export function FiltrosProfesionales({ filtros, onFiltrosChange }: FiltrosProfes
           />
           <Button
             variant="ghost"
-            onClick={() => onFiltrosChange({ tipo: undefined, planta: undefined, estado: undefined })}
+            onClick={() =>
+              onFiltrosChange({ tipo: undefined, areaOperativaId: undefined, tipoEfector: undefined, estado: undefined })
+            }
           >
             Limpiar filtros
           </Button>

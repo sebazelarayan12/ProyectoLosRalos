@@ -17,6 +17,8 @@ const respuestaConResultados = {
       id: '11111111-1111-1111-1111-111111111111',
       apellido: 'Perez',
       nombre: 'Ana',
+      dni: '12.345.678',
+      cuil: '27-12345678-3',
       matricula: 'MP-1234',
       cargo: 'Enfermera',
       nroExpediente: '1/2020',
@@ -26,6 +28,13 @@ const respuestaConResultados = {
   porPagina: 20,
   hasNextPage: false,
   cursor: null,
+}
+
+function mockApiGet(respuestaProfesionales: unknown) {
+  vi.mocked(api.get).mockImplementation((url: string) => {
+    if (url.includes('areas-operativas')) return Promise.resolve({ data: [] })
+    return Promise.resolve({ data: respuestaProfesionales })
+  })
 }
 
 function setUsuario(rol: 'Admin' | 'Administrativo') {
@@ -57,7 +66,7 @@ describe('BusquedaProfesionalesPage', () => {
 
   test('muestra los resultados devueltos por la API', async () => {
     setUsuario('Administrativo')
-    vi.mocked(api.get).mockResolvedValue({ data: respuestaConResultados })
+    mockApiGet(respuestaConResultados)
 
     renderPage()
 
@@ -66,9 +75,7 @@ describe('BusquedaProfesionalesPage', () => {
 
   test('sin resultados, muestra el mensaje de vacio', async () => {
     setUsuario('Administrativo')
-    vi.mocked(api.get).mockResolvedValue({
-      data: { items: [], porPagina: 20, hasNextPage: false, cursor: null },
-    })
+    mockApiGet({ items: [], porPagina: 20, hasNextPage: false, cursor: null })
 
     renderPage()
 
@@ -79,7 +86,7 @@ describe('BusquedaProfesionalesPage', () => {
 
   test('boton Nuevo profesional visible solo para admin', async () => {
     setUsuario('Admin')
-    vi.mocked(api.get).mockResolvedValue({ data: respuestaConResultados })
+    mockApiGet(respuestaConResultados)
     renderPage()
     await screen.findByText('Perez, Ana')
 
@@ -88,7 +95,7 @@ describe('BusquedaProfesionalesPage', () => {
 
   test('boton Nuevo profesional tambien visible para administrativo', async () => {
     setUsuario('Administrativo')
-    vi.mocked(api.get).mockResolvedValue({ data: respuestaConResultados })
+    mockApiGet(respuestaConResultados)
     renderPage()
     await screen.findByText('Perez, Ana')
 
@@ -97,7 +104,7 @@ describe('BusquedaProfesionalesPage', () => {
 
   test('escribir en el buscador filtra por apellido o expediente tras el debounce', async () => {
     setUsuario('Administrativo')
-    vi.mocked(api.get).mockResolvedValue({ data: respuestaConResultados })
+    mockApiGet(respuestaConResultados)
     const user = userEvent.setup()
     renderPage()
     await screen.findByText('Perez, Ana')
@@ -114,7 +121,7 @@ describe('BusquedaProfesionalesPage', () => {
 
   test('click en Ver legajo navega al perfil del profesional', async () => {
     setUsuario('Administrativo')
-    vi.mocked(api.get).mockResolvedValue({ data: respuestaConResultados })
+    mockApiGet(respuestaConResultados)
     const user = userEvent.setup()
     renderPage()
     await screen.findByText('Perez, Ana')
@@ -126,7 +133,7 @@ describe('BusquedaProfesionalesPage', () => {
 
   test('elegir un filtro de tipo lo manda como param y resetea la paginacion', async () => {
     setUsuario('Administrativo')
-    vi.mocked(api.get).mockResolvedValue({ data: respuestaConResultados })
+    mockApiGet(respuestaConResultados)
     const user = userEvent.setup()
     renderPage()
     await screen.findByText('Perez, Ana')
@@ -147,7 +154,7 @@ describe('BusquedaProfesionalesPage', () => {
 
   test('elegir un filtro de estado lo manda como param y resetea la paginacion', async () => {
     setUsuario('Administrativo')
-    vi.mocked(api.get).mockResolvedValue({ data: respuestaConResultados })
+    mockApiGet(respuestaConResultados)
     const user = userEvent.setup()
     renderPage()
     await screen.findByText('Perez, Ana')
@@ -168,9 +175,7 @@ describe('BusquedaProfesionalesPage', () => {
 
   test('Siguiente pide la proxima pagina con el cursor devuelto', async () => {
     setUsuario('Administrativo')
-    vi.mocked(api.get).mockResolvedValue({
-      data: { ...respuestaConResultados, hasNextPage: true, cursor: 'cursor-pagina-2' },
-    })
+    mockApiGet({ ...respuestaConResultados, hasNextPage: true, cursor: 'cursor-pagina-2' })
     const user = userEvent.setup()
     renderPage()
     await screen.findByText('Perez, Ana')
@@ -187,7 +192,7 @@ describe('BusquedaProfesionalesPage', () => {
 
   test('Anterior esta deshabilitado en la primera pagina', async () => {
     setUsuario('Administrativo')
-    vi.mocked(api.get).mockResolvedValue({ data: respuestaConResultados })
+    mockApiGet(respuestaConResultados)
     renderPage()
     await screen.findByText('Perez, Ana')
 

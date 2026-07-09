@@ -230,6 +230,20 @@ distinto del patron `(Apellido, FechaCreacion)` de Profesional. Tradeoff aceptad
 en este proyecto es bajo (100-500 usuarios), colision exacta de `Timestamp` entre dos entradas es
 improbable. Mismo criterio de tradeoff que `TipoDocumento.GetOrCreateAsync`.
 
+### Orden numerico sobre un campo string (Dni) — sin CAST a numero (Paso 12)
+
+`Profesional.Dni` es `string` con formato fijo `\d{1,2}\.\d{3}\.\d{3}$` (regex del DTO) — 7 u 8
+digitos totales. Ordenar por `string.Compare` da orden LEXICOGRAFICO, no numerico: `"9.999.999"` >
+`"10.000.000"` como string (el primer caracter `'9' > '1'`), al reves que numericamente. En vez de
+castear a bigint (no traduce limpio en EF Core/Npgsql), se explota que el formato con puntos hace
+que el LARGO del string sea 9 caracteres para 7 digitos y 10 caracteres para 8 digitos siempre
+(nunca hay ceros a la izquierda) — entonces `OrderBy(p => p.Dni.Length).ThenBy(p => p.Dni)` da orden
+numerico correcto sin CAST. `.Length` en EF Core traduce a `length()`/`char_length()` en Postgres, se
+traduce bien. Ver `ProfesionalRepository.SearchAsync` (`OrdenarPor.DniAsc`/`DniDesc`). El cursor de
+paginacion para este modo de orden solo necesita `Dni` (es unico, no hace falta tiebreak como con
+Apellido+FechaCreacion) — la comparacion del cursor tambien compara por Length primero, igual que el
+OrderBy.
+
 ### Check constraints en EF Core 8
 
 Usar `builder.ToTable("tabla", t => { t.HasCheckConstraint(...); })` — NO `builder.HasCheckConstraint(...)` directo (obsoleto CS0618).

@@ -10,13 +10,16 @@ import { useDebounce } from '@/hooks/useDebounce'
 import { useProfesionales } from '../hooks/useProfesionales'
 import { TablaResultados } from '../components/TablaResultados'
 import { FiltrosProfesionales, type Filtros } from '../components/FiltrosProfesionales'
+import { OrdenarProfesionales } from '../components/OrdenarProfesionales'
 import { PaginacionResultados } from '@/components/PaginacionResultados'
+import type { OrdenarPor } from '../api/buscarProfesionales'
 
 export function BusquedaProfesionalesPage() {
   const { usuario } = useAuth()
   const navigate = useNavigate()
   const [busqueda, setBusqueda] = useState('')
   const [filtros, setFiltros] = useState<Filtros>({})
+  const [ordenarPor, setOrdenarPor] = useState<OrdenarPor | undefined>(undefined)
   const [cursor, setCursor] = useState<string | undefined>(undefined)
   const [historial, setHistorial] = useState<(string | undefined)[]>([])
   const debouncedBusqueda = useDebounce(busqueda, 300)
@@ -25,8 +28,10 @@ export function BusquedaProfesionalesPage() {
   const { data, isLoading } = useProfesionales({
     busqueda: deferredBusqueda || undefined,
     tipo: filtros.tipo,
-    planta: filtros.planta,
+    areaOperativaId: filtros.areaOperativaId,
+    tipoEfector: filtros.tipoEfector,
     estado: filtros.estado,
+    ordenarPor,
     cursor,
     porPagina: 20,
   })
@@ -39,6 +44,12 @@ export function BusquedaProfesionalesPage() {
 
   const handleFiltrosChange = (nuevosFiltros: Filtros) => {
     setFiltros(nuevosFiltros)
+    setCursor(undefined)
+    setHistorial([])
+  }
+
+  const handleOrdenarPorChange = (nuevoOrden: OrdenarPor) => {
+    setOrdenarPor(nuevoOrden)
     setCursor(undefined)
     setHistorial([])
   }
@@ -80,6 +91,7 @@ export function BusquedaProfesionalesPage() {
         </Field>
         <div className="flex items-end gap-2">
           <FiltrosProfesionales filtros={filtros} onFiltrosChange={handleFiltrosChange} />
+          <OrdenarProfesionales ordenarPor={ordenarPor} onOrdenarPorChange={handleOrdenarPorChange} />
           {usuario?.rol === 'Admin' || usuario?.rol === 'Administrativo' ? (
             <Button onClick={() => navigate('/profesionales/nuevo')}>
               <Plus />

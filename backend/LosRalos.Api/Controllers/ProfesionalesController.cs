@@ -18,13 +18,16 @@ public class ProfesionalesController(IProfesionalService service, IDocumentoServ
     public async Task<IActionResult> Search(
         [FromQuery] string? busqueda,
         [FromQuery] TipoLegajo? tipo,
-        [FromQuery] Planta? planta,
+        [FromQuery] Guid? areaOperativaId,
+        [FromQuery] TipoEfector? tipoEfector,
         [FromQuery] EstadoProfesionalFiltro? estado,
-        [FromQuery] string? cursor,
+        [FromQuery] OrdenarPor ordenarPor = OrdenarPor.ApellidoAsc,
+        [FromQuery] string? cursor = null,
         [FromQuery] int porPagina = 20,
         CancellationToken ct = default)
     {
-        var result = await service.SearchAsync(busqueda, tipo, planta, estado, cursor, porPagina, ct)
+        var result = await service.SearchAsync(
+                busqueda, tipo, areaOperativaId, tipoEfector, estado, ordenarPor, cursor, porPagina, ct)
             .ConfigureAwait(false);
         return Ok(result);
     }

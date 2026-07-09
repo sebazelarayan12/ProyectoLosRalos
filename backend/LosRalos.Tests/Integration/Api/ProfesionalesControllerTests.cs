@@ -223,6 +223,103 @@ public class ProfesionalesControllerTests : IAsyncLifetime
         ids.Should().Contain(detalleInactivo.Id.ToString());
     }
 
+    [Fact]
+    public async Task Search_FiltroAreaOperativaId_SoloRetornaEsaArea()
+    {
+        var losRalos = await _adminClient.PostAsJsonAsync("/api/v1/profesionales",
+            BuildRequest(apellido: "AreaLosRalos", dni: "10.100.100", cuil: "20-10100100-0"));
+        var detalleLosRalos = await losRalos.Content.ReadFromJsonAsync<ProfesionalDetalleResponse>();
+
+        var req = BuildRequest(apellido: "AreaLasCejas", dni: "10.200.200", cuil: "20-10200200-0");
+        req.AreaOperativa = "Las Cejas";
+        var lasCejas = await _adminClient.PostAsJsonAsync("/api/v1/profesionales", req);
+        var detalleLasCejas = await lasCejas.Content.ReadFromJsonAsync<ProfesionalDetalleResponse>();
+
+        var areas = await _adminClient.GetFromJsonAsync<JsonElement>("/api/v1/areas-operativas");
+        var idLasCejas = areas.EnumerateArray()
+            .First(a => a.GetProperty("nombre").GetString() == "LAS CEJAS")
+            .GetProperty("id").GetString();
+
+        var resp = await _adminClient.GetAsync($"/api/v1/profesionales?areaOperativaId={idLasCejas}");
+        var body = await resp.Content.ReadFromJsonAsync<JsonElement>();
+        var ids = body.GetProperty("items").EnumerateArray()
+            .Select(x => x.GetProperty("id").GetString()).ToList();
+
+        ids.Should().Contain(detalleLasCejas!.Id.ToString());
+        ids.Should().NotContain(detalleLosRalos!.Id.ToString());
+    }
+
+    [Fact]
+    public async Task Search_FiltroTipoEfector_SoloRetornaEseEfector()
+    {
+        var hospital = await _adminClient.PostAsJsonAsync("/api/v1/profesionales",
+            BuildRequest(apellido: "EfectorHospital", dni: "10.300.300", cuil: "20-10300300-0"));
+        var detalleHospital = await hospital.Content.ReadFromJsonAsync<ProfesionalDetalleResponse>();
+
+        var req = BuildRequest(apellido: "EfectorCaps", dni: "10.400.400", cuil: "20-10400400-0");
+        req.TipoEfector = TipoEfector.CAPS;
+        var caps = await _adminClient.PostAsJsonAsync("/api/v1/profesionales", req);
+        var detalleCaps = await caps.Content.ReadFromJsonAsync<ProfesionalDetalleResponse>();
+
+        var resp = await _adminClient.GetAsync("/api/v1/profesionales?tipoEfector=CAPS");
+        var body = await resp.Content.ReadFromJsonAsync<JsonElement>();
+        var ids = body.GetProperty("items").EnumerateArray()
+            .Select(x => x.GetProperty("id").GetString()).ToList();
+
+        ids.Should().Contain(detalleCaps!.Id.ToString());
+        ids.Should().NotContain(detalleHospital!.Id.ToString());
+    }
+
+    [Fact]
+    public async Task Search_OrdenarPorDniAsc_OrdenaNumericamenteNoAlfabeticamente()
+    {
+        // Apellido Z (dni chico) vs Apellido A (dni grande): si ordenara por Apellido (default)
+        // el orden de Dni saldria al reves. Prueba que ordenarPor=DniAsc gana sobre el default.
+        await _adminClient.PostAsJsonAsync("/api/v1/profesionales",
+            BuildRequest(apellido: "ZOrdenDni", dni: "9.999.998", cuil: "20-99999980-1"));
+        await _adminClient.PostAsJsonAsync("/api/v1/profesionales",
+            BuildRequest(apellido: "AOrdenDni", dni: "10.000.500", cuil: "20-10000500-1"));
+
+        var resp = await _adminClient.GetAsync("/api/v1/profesionales?ordenarPor=DniAsc&busqueda=OrdenDni");
+        var body = await resp.Content.ReadFromJsonAsync<JsonElement>();
+        var dnis = body.GetProperty("items").EnumerateArray()
+            .Select(x => x.GetProperty("dni").GetString()).ToList();
+
+        dnis.Should().Equal("9.999.998", "10.000.500");
+    }
+
+    [Fact]
+    public async Task Search_OrdenarPorDniDesc_OrdenaNumericamenteDescendente()
+    {
+        await _adminClient.PostAsJsonAsync("/api/v1/profesionales",
+            BuildRequest(apellido: "ZOrdenDesc", dni: "10.000.600", cuil: "20-10000600-1"));
+        await _adminClient.PostAsJsonAsync("/api/v1/profesionales",
+            BuildRequest(apellido: "AOrdenDesc", dni: "9.999.997", cuil: "20-99999970-1"));
+
+        var resp = await _adminClient.GetAsync("/api/v1/profesionales?ordenarPor=DniDesc&busqueda=OrdenDesc");
+        var body = await resp.Content.ReadFromJsonAsync<JsonElement>();
+        var dnis = body.GetProperty("items").EnumerateArray()
+            .Select(x => x.GetProperty("dni").GetString()).ToList();
+
+        dnis.Should().Equal("10.000.600", "9.999.997");
+    }
+
+    [Fact]
+    public async Task Search_OrdenarPorApellidoDesc_OrdenaDescendente()
+    {
+        await _adminClient.PostAsJsonAsync("/api/v1/profesionales",
+            BuildRequest(apellido: "OrdenApeA", dni: "10.500.501", cuil: "20-10500501-1"));
+        await _adminClient.PostAsJsonAsync("/api/v1/profesionales",
+            BuildRequest(apellido: "OrdenApeZ", dni: "10.500.502", cuil: "20-10500502-1"));
+
+        var resp = await _adminClient.GetAsync("/api/v1/profesionales?ordenarPor=ApellidoDesc&busqueda=OrdenApe");
+        var body = await resp.Content.ReadFromJsonAsync<JsonElement>();
+        var apellidos = body.GetProperty("items").EnumerateArray()
+            .Select(x => x.GetProperty("apellido").GetString()).ToList();
+
+        apellidos.Should().Equal("ORDENAPEZ", "ORDENAPEA");
+    }
+
     // --- POST /api/v1/profesionales ---
 
     [Fact]
