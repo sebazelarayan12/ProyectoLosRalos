@@ -39,3 +39,5 @@ uploads/
 *.jpg
 *.xlsx
 Reunion.md
+*.csv
+*.sh
