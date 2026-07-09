@@ -19,7 +19,7 @@ public static class ProfesionalMappingExtensions
         Cuil = p.Cuil,
         FechaNacimiento = p.FechaNacimiento,
         Sexo = p.Sexo.ToString(),
-        EstadoCivil = p.EstadoCivil.ToString(),
+        EstadoCivil = p.EstadoCivil?.ToString(),
         Domicilio = p.Domicilio,
         Barrio = p.Barrio,
         Localidad = p.Localidad,
@@ -32,9 +32,9 @@ public static class ProfesionalMappingExtensions
         AreaOperativa = p.AreaOperativa?.Nombre ?? string.Empty,
         TipoEfector = p.TipoEfector.ToString(),
         Nivel = p.Nivel?.ToString(),
-        Planta = p.Planta.ToString(),
+        Planta = p.Planta?.ToString(),
         NroExpediente = p.NroExpediente,
-        Tipo = p.Tipo.ToString(),
+        Tipo = p.Tipo?.ToString(),
         Activo = p.Activo,
         FechaCreacion = p.FechaCreacion,
         FechaActualizacion = p.FechaActualizacion,
@@ -57,7 +57,7 @@ public static class ProfesionalMappingExtensions
         Matricula = p.Matricula,
         Cargo = p.Cargo?.Nombre ?? string.Empty,
         NroExpediente = p.NroExpediente,
-        Tipo = p.Tipo.ToString()
+        Tipo = p.Tipo?.ToString()
     };
 
     public static Profesional ToEntity(this ProfesionalRequest req, Cargo cargo, AreaOperativa areaOperativa) => new()
@@ -70,7 +70,7 @@ public static class ProfesionalMappingExtensions
         FechaNacimiento = req.FechaNacimiento,
         Sexo = req.Sexo,
         EstadoCivil = req.EstadoCivil,
-        Domicilio = Mayusculas(req.Domicilio),
+        Domicilio = MayusculasOpcional(req.Domicilio),
         Barrio = MayusculasOpcional(req.Barrio),
         Localidad = Mayusculas(req.Localidad),
         Provincia = Mayusculas(req.Provincia),

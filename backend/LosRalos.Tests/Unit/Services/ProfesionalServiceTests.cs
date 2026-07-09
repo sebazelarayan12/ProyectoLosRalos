@@ -196,6 +196,29 @@ public class ProfesionalServiceTests
     }
 
     [Fact]
+    public async Task Create_SinEstadoCivilDomicilioPlantaTipo_CreaProfesionalConEsosCamposNull()
+    {
+        var req = RequestValido();
+        req.EstadoCivil = null;
+        req.Domicilio = null;
+        req.Planta = null;
+        req.Tipo = null;
+        _repo.ExistsDniAsync(req.Dni, null, Arg.Any<CancellationToken>()).Returns(false);
+        _repo.ExistsCuilAsync(req.Cuil, null, Arg.Any<CancellationToken>()).Returns(false);
+
+        var result = await CrearServicio().CreateAsync(req, UsuarioId, NombreUsuario, "1.2.3.4");
+
+        result.EstadoCivil.Should().BeNull();
+        result.Domicilio.Should().BeNull();
+        result.Planta.Should().BeNull();
+        result.Tipo.Should().BeNull();
+
+        await _repo.Received(1).AddAsync(
+            Arg.Is<Profesional>(p => p.EstadoCivil == null && p.Domicilio == null && p.Planta == null && p.Tipo == null),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task Create_SinCuil_CreaProfesionalConCuilNullYNoConsultaDuplicado()
     {
         var req = RequestValido();

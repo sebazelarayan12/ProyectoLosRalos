@@ -29,7 +29,7 @@ public class ProfesionalConfiguration : IEntityTypeConfiguration<Profesional>
         builder.Property(p => p.Dni).IsRequired().HasMaxLength(15);
         builder.Property(p => p.Cuil).HasMaxLength(15);
         builder.Property(p => p.FechaNacimiento).IsRequired();
-        builder.Property(p => p.Domicilio).IsRequired().HasMaxLength(200);
+        builder.Property(p => p.Domicilio).HasMaxLength(200);
         builder.Property(p => p.Barrio).HasMaxLength(100);
         builder.Property(p => p.Localidad).IsRequired().HasMaxLength(100);
         builder.Property(p => p.Provincia).IsRequired().HasMaxLength(100).HasDefaultValue("Tucuman");

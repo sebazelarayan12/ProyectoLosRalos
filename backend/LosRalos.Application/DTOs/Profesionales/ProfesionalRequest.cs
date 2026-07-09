@@ -26,12 +26,10 @@ public class ProfesionalRequest
     [Required]
     public Sexo Sexo { get; set; }
 
-    [Required]
-    public EstadoCivil EstadoCivil { get; set; }
+    public EstadoCivil? EstadoCivil { get; set; }
 
-    [Required]
     [MaxLength(200)]
-    public string Domicilio { get; set; } = string.Empty;
+    public string? Domicilio { get; set; }
 
     [MaxLength(100)]
     public string? Barrio { get; set; }
@@ -70,12 +68,10 @@ public class ProfesionalRequest
 
     public Nivel? Nivel { get; set; }
 
-    [Required]
-    public Planta Planta { get; set; }
+    public Planta? Planta { get; set; }
 
     [MaxLength(50)]
     public string? NroExpediente { get; set; }
 
-    [Required]
-    public TipoLegajo Tipo { get; set; }
+    public TipoLegajo? Tipo { get; set; }
 }
