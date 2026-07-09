@@ -10,13 +10,15 @@ function buildClient() {
 }
 
 describe('buscarProfesionales', () => {
-  test('envia busqueda, tipo, planta, cursor y porPagina como query params', async () => {
+  test('envia busqueda, tipo, areaOperativaId, tipoEfector, ordenarPor, cursor y porPagina como query params', async () => {
     const { client, mock } = buildClient()
     mock.onGet('/profesionales').reply((config) => {
       expect(config.params).toEqual({
         busqueda: 'Perez',
         tipo: 'Asistencial',
-        planta: 'PermanenteEfectivo',
+        areaOperativaId: 'area-1',
+        tipoEfector: 'Hospital',
+        ordenarPor: 'DniAsc',
         cursor: 'abc',
         porPagina: 20,
       })
@@ -26,7 +28,9 @@ describe('buscarProfesionales', () => {
     await buscarProfesionales(client, {
       busqueda: 'Perez',
       tipo: 'Asistencial',
-      planta: 'PermanenteEfectivo',
+      areaOperativaId: 'area-1',
+      tipoEfector: 'Hospital',
+      ordenarPor: 'DniAsc',
       cursor: 'abc',
       porPagina: 20,
     })

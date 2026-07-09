@@ -200,7 +200,7 @@ export function ProfesionalForm({ modo, valoresIniciales, onSubmit }: Profesiona
       cuil: aNuloSiVacio(values.cuil),
       fechaNacimiento: values.fechaNacimiento,
       sexo: values.sexo,
-      estadoCivil: aNuloSiVacio(values.estadoCivil),
+      estadoCivil: aNuloSiVacio(values.estadoCivil) as ProfesionalRequestPayload['estadoCivil'],
       domicilio: aNuloSiVacio(values.domicilio),
       barrio: aNuloSiVacio(values.barrio),
       localidad: values.localidad,
@@ -212,10 +212,10 @@ export function ProfesionalForm({ modo, valoresIniciales, onSubmit }: Profesiona
       cargo: values.cargo,
       areaOperativa: values.areaOperativa,
       tipoEfector: values.tipoEfector,
-      nivel: aNuloSiVacio(values.nivel),
-      planta: aNuloSiVacio(values.planta),
+      nivel: aNuloSiVacio(values.nivel) as ProfesionalRequestPayload['nivel'],
+      planta: aNuloSiVacio(values.planta) as ProfesionalRequestPayload['planta'],
       nroExpediente: aNuloSiVacio(values.nroExpediente),
-      tipo: aNuloSiVacio(values.tipo),
+      tipo: aNuloSiVacio(values.tipo) as ProfesionalRequestPayload['tipo'],
     })
   }
 

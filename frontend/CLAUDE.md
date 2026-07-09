@@ -2,6 +2,15 @@
 
 Ver spec en `docs/specs/2026-06-28-legajos-digitales-design.md` Sec. 10 para stack y convenciones frontend.
 
+## Type-check real — `npx tsc -b`, NUNCA `npx tsc --noEmit`
+
+El `tsconfig.json` de la raiz solo tiene `references` (a `tsconfig.app.json` y `tsconfig.node.json`),
+no `include` propio — `npx tsc --noEmit` sobre ese archivo no compila NADA, siempre sale limpio aunque
+haya errores de tipos reales en el proyecto (falso negativo silencioso). El build real (`npm run build`
+= `tsc -b && vite build`) usa modo proyecto (`-b`), que si resuelve las referencias y tipa todo. Verificar
+tipos SIEMPRE con `npx tsc -b` antes de dar un cambio por terminado — encontrado porque `docker compose
+build frontend` fallaba con errores de tipos que `tsc --noEmit` nunca habia mostrado.
+
 ## Estructura — screaming architecture
 
 Carpetas top-level dentro de `src/` scream por dominio/feature, no por capa tecnica:
