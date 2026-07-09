@@ -176,9 +176,22 @@ if (builder.Environment.IsDevelopment())
 
 var app = builder.Build();
 
-// Migrations automaticas en startup
-using (var scope = app.Services.CreateScope())
+// Migrations automaticas en startup — corren con el rol admin (DDL), no con el
+// rol de runtime que usa AppDbContext en cada request (solo DML, ver db/init/01-create-app-role.sh).
+// Si no hay "Migration" configurado (tests de integracion, que reemplazan AppDbContext via DI con
+// Testcontainers) se usa el AppDbContext normal resuelto por DI, igual que antes.
+var migrationConnectionString = builder.Configuration.GetConnectionString("Migration");
+
+if (!string.IsNullOrWhiteSpace(migrationConnectionString))
 {
+    using var migrationContext = new AppDbContext(
+        new DbContextOptionsBuilder<AppDbContext>().UseNpgsql(migrationConnectionString).Options,
+        new TimestampInterceptor());
+    migrationContext.Database.Migrate();
+}
+else
+{
+    using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.Migrate();
 }

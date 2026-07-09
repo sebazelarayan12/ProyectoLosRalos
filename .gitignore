@@ -37,3 +37,5 @@ uploads/
 # Legajos de prueba (datos sensibles)
 *.pdf
 *.jpg
+*.xlsx
+Reunion.md
