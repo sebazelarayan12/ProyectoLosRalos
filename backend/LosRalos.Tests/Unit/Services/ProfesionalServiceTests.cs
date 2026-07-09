@@ -14,14 +14,22 @@ public class ProfesionalServiceTests
 {
     private readonly IProfesionalRepository _repo = Substitute.For<IProfesionalRepository>();
     private readonly IAuditLogRepository _auditRepo = Substitute.For<IAuditLogRepository>();
+    private readonly ICargoRepository _cargoRepo = Substitute.For<ICargoRepository>();
+    private readonly IAreaOperativaRepository _areaOperativaRepo = Substitute.For<IAreaOperativaRepository>();
 
     private ProfesionalService CrearServicio() => new(
         _repo,
         _auditRepo,
+        _cargoRepo,
+        _areaOperativaRepo,
         NullLogger<ProfesionalService>.Instance);
 
     private static readonly Guid UsuarioId = Guid.NewGuid();
     private const string NombreUsuario = "Admin Test";
+
+    private static readonly Cargo CargoOdontologa = new() { Id = Guid.NewGuid(), Nombre = "ODONTOLOGA", FechaCreacion = DateTime.UtcNow };
+    private static readonly AreaOperativa AreaLosRalos = new() { Id = Guid.NewGuid(), Nombre = "LOS RALOS", FechaCreacion = DateTime.UtcNow };
+    private static readonly Cargo CargoAdministrativo = new() { Id = Guid.NewGuid(), Nombre = "ADMINISTRATIVO", FechaCreacion = DateTime.UtcNow };
 
     private static Profesional ProfesionalActivo() => new()
     {
@@ -36,7 +44,11 @@ public class ProfesionalServiceTests
         Domicilio = "Calle Falsa 123",
         Localidad = "Los Ralos",
         Provincia = "Tucuman",
-        Funcion = "Odontologa",
+        Cargo = CargoOdontologa,
+        CargoId = CargoOdontologa.Id,
+        AreaOperativa = AreaLosRalos,
+        AreaOperativaId = AreaLosRalos.Id,
+        TipoEfector = TipoEfector.Hospital,
         Nivel = Nivel.Universitario,
         Planta = Planta.PermanenteEfectivo,
         Tipo = TipoLegajo.Asistencial,
@@ -45,23 +57,31 @@ public class ProfesionalServiceTests
         FechaActualizacion = DateTime.UtcNow
     };
 
-    private static ProfesionalRequest RequestValido() => new()
+    private ProfesionalRequest RequestValido()
     {
-        Apellido = "Rodriguez",
-        Nombre = "Juan",
-        Dni = "23.456.789",
-        Cuil = "20-23456789-5",
-        FechaNacimiento = new DateOnly(1990, 1, 1),
-        Sexo = Sexo.Masculino,
-        EstadoCivil = EstadoCivil.Soltero,
-        Domicilio = "Av. Siempre Viva 742",
-        Localidad = "Los Ralos",
-        Provincia = "Tucuman",
-        Funcion = "Administrativo",
-        Nivel = Nivel.Secundario,
-        Planta = Planta.Transitorio,
-        Tipo = TipoLegajo.Administrativo
-    };
+        _cargoRepo.GetOrCreateAsync("ADMINISTRATIVO", Arg.Any<CancellationToken>()).Returns(CargoAdministrativo);
+        _areaOperativaRepo.GetOrCreateAsync("LOS RALOS", Arg.Any<CancellationToken>()).Returns(AreaLosRalos);
+
+        return new ProfesionalRequest
+        {
+            Apellido = "Rodriguez",
+            Nombre = "Juan",
+            Dni = "23.456.789",
+            Cuil = "20-23456789-5",
+            FechaNacimiento = new DateOnly(1990, 1, 1),
+            Sexo = Sexo.Masculino,
+            EstadoCivil = EstadoCivil.Soltero,
+            Domicilio = "Av. Siempre Viva 742",
+            Localidad = "Los Ralos",
+            Provincia = "Tucuman",
+            Cargo = "ADMINISTRATIVO",
+            AreaOperativa = "LOS RALOS",
+            TipoEfector = TipoEfector.Hospital,
+            Nivel = Nivel.Secundario,
+            Planta = Planta.Transitorio,
+            Tipo = TipoLegajo.NoAsistencial
+        };
+    }
 
     [Fact]
     public async Task GetById_ProfesionalExistente_RetornaDetalleYRegistraVerLegajo()
@@ -164,14 +184,16 @@ public class ProfesionalServiceTests
     public async Task Update_CamposValidos_ActualizaYRegistraAudit()
     {
         var profesional = ProfesionalActivo();
-        var req = new PatchProfesionalRequest { Apellido = "NuevoApellido", Funcion = "NuevaFuncion" };
+        var nuevoCargo = new Cargo { Id = Guid.NewGuid(), Nombre = "NUEVOCARGO", FechaCreacion = DateTime.UtcNow };
+        var req = new PatchProfesionalRequest { Apellido = "NuevoApellido", Cargo = "NUEVOCARGO" };
 
         _repo.GetByIdAsync(profesional.Id, Arg.Any<CancellationToken>()).Returns(profesional);
+        _cargoRepo.GetOrCreateAsync("NUEVOCARGO", Arg.Any<CancellationToken>()).Returns(nuevoCargo);
 
         var result = await CrearServicio().UpdateAsync(profesional.Id, req, UsuarioId, NombreUsuario, null);
 
         result.Apellido.Should().Be("NuevoApellido");
-        result.Funcion.Should().Be("NuevaFuncion");
+        result.Cargo.Should().Be("NUEVOCARGO");
 
         await _repo.Received(1).UpdateAsync(
             Arg.Is<Profesional>(p => p.Apellido == "NuevoApellido"),

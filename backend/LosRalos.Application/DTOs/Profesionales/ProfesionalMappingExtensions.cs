@@ -21,8 +21,10 @@ public static class ProfesionalMappingExtensions
         CodigoPostal = p.CodigoPostal,
         Telefono = p.Telefono,
         Email = p.Email,
-        Funcion = p.Funcion,
-        Servicio = p.Servicio,
+        Matricula = p.Matricula,
+        Cargo = p.Cargo?.Nombre ?? string.Empty,
+        AreaOperativa = p.AreaOperativa?.Nombre ?? string.Empty,
+        TipoEfector = p.TipoEfector.ToString(),
         Nivel = p.Nivel.ToString(),
         Planta = p.Planta.ToString(),
         NroExpediente = p.NroExpediente,
@@ -46,13 +48,13 @@ public static class ProfesionalMappingExtensions
         Id = p.Id,
         Apellido = p.Apellido,
         Nombre = p.Nombre,
-        Funcion = p.Funcion,
-        Servicio = p.Servicio,
+        Matricula = p.Matricula,
+        Cargo = p.Cargo?.Nombre ?? string.Empty,
         NroExpediente = p.NroExpediente,
         Tipo = p.Tipo.ToString()
     };
 
-    public static Profesional ToEntity(this ProfesionalRequest req) => new()
+    public static Profesional ToEntity(this ProfesionalRequest req, Cargo cargo, AreaOperativa areaOperativa) => new()
     {
         Id = Guid.NewGuid(),
         Apellido = req.Apellido,
@@ -69,8 +71,12 @@ public static class ProfesionalMappingExtensions
         CodigoPostal = req.CodigoPostal,
         Telefono = req.Telefono,
         Email = req.Email,
-        Funcion = req.Funcion,
-        Servicio = req.Servicio,
+        Matricula = req.Matricula,
+        Cargo = cargo,
+        CargoId = cargo.Id,
+        AreaOperativa = areaOperativa,
+        AreaOperativaId = areaOperativa.Id,
+        TipoEfector = req.TipoEfector,
         Nivel = req.Nivel,
         Planta = req.Planta,
         NroExpediente = req.NroExpediente,
@@ -80,7 +86,7 @@ public static class ProfesionalMappingExtensions
         FechaActualizacion = DateTime.UtcNow
     };
 
-    public static List<string> ApplyPatch(this Profesional p, PatchProfesionalRequest req)
+    public static List<string> ApplyPatch(this Profesional p, PatchProfesionalRequest req, Cargo? cargo, AreaOperativa? areaOperativa)
     {
         var changed = new List<string>();
 
@@ -126,11 +132,17 @@ public static class ProfesionalMappingExtensions
         if (req.Email is not null && req.Email != p.Email)
         { p.Email = req.Email; changed.Add(nameof(Profesional.Email)); }
 
-        if (req.Funcion is not null && req.Funcion != p.Funcion)
-        { p.Funcion = req.Funcion; changed.Add(nameof(Profesional.Funcion)); }
+        if (req.Matricula is not null && req.Matricula != p.Matricula)
+        { p.Matricula = req.Matricula; changed.Add(nameof(Profesional.Matricula)); }
 
-        if (req.Servicio is not null && req.Servicio != p.Servicio)
-        { p.Servicio = req.Servicio; changed.Add(nameof(Profesional.Servicio)); }
+        if (cargo is not null && cargo.Id != p.CargoId)
+        { p.Cargo = cargo; p.CargoId = cargo.Id; changed.Add(nameof(Profesional.Cargo)); }
+
+        if (areaOperativa is not null && areaOperativa.Id != p.AreaOperativaId)
+        { p.AreaOperativa = areaOperativa; p.AreaOperativaId = areaOperativa.Id; changed.Add(nameof(Profesional.AreaOperativa)); }
+
+        if (req.TipoEfector.HasValue && req.TipoEfector.Value != p.TipoEfector)
+        { p.TipoEfector = req.TipoEfector.Value; changed.Add(nameof(Profesional.TipoEfector)); }
 
         if (req.Nivel.HasValue && req.Nivel.Value != p.Nivel)
         { p.Nivel = req.Nivel.Value; changed.Add(nameof(Profesional.Nivel)); }
@@ -146,4 +158,16 @@ public static class ProfesionalMappingExtensions
 
         return changed;
     }
+
+    public static CargoResponse ToResponse(this Cargo c) => new()
+    {
+        Id = c.Id,
+        Nombre = c.Nombre
+    };
+
+    public static AreaOperativaResponse ToResponse(this AreaOperativa a) => new()
+    {
+        Id = a.Id,
+        Nombre = a.Nombre
+    };
 }

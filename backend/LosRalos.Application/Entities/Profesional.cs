@@ -19,8 +19,12 @@ public class Profesional
     public string? CodigoPostal { get; set; }
     public string? Telefono { get; set; }
     public string? Email { get; set; }
-    public string Funcion { get; set; } = string.Empty;
-    public string? Servicio { get; set; }
+    public string? Matricula { get; set; }
+    public Guid CargoId { get; set; }
+    public Cargo? Cargo { get; set; }
+    public Guid AreaOperativaId { get; set; }
+    public AreaOperativa? AreaOperativa { get; set; }
+    public TipoEfector TipoEfector { get; set; }
     public Nivel Nivel { get; set; }
     public Planta Planta { get; set; }
     public string? NroExpediente { get; set; }

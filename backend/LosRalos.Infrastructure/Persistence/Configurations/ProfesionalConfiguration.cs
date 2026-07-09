@@ -11,11 +11,12 @@ public class ProfesionalConfiguration : IEntityTypeConfiguration<Profesional>
     {
         builder.ToTable("profesionales", t =>
         {
-            t.HasCheckConstraint("chk_profesional_tipo", "\"Tipo\" IN ('Asistencial', 'Administrativo')");
+            t.HasCheckConstraint("chk_profesional_tipo", "\"Tipo\" IN ('Asistencial', 'NoAsistencial', 'CP')");
             t.HasCheckConstraint("chk_profesional_sexo", "\"Sexo\" IN ('Masculino', 'Femenino', 'Otro')");
             t.HasCheckConstraint("chk_profesional_estado_civil", "\"EstadoCivil\" IN ('Soltero', 'Casado', 'Divorciado', 'Viudo', 'Otro')");
             t.HasCheckConstraint("chk_profesional_nivel", "\"Nivel\" IN ('Secundario', 'Terciario', 'Universitario')");
             t.HasCheckConstraint("chk_profesional_planta", "\"Planta\" IN ('Transitorio', 'PermanenteInterino', 'PermanenteEfectivo')");
+            t.HasCheckConstraint("chk_profesional_tipo_efector", "\"TipoEfector\" IN ('Hospital', 'CAPS')");
         });
 
         builder.HasKey(p => p.Id);
@@ -35,8 +36,7 @@ public class ProfesionalConfiguration : IEntityTypeConfiguration<Profesional>
         builder.Property(p => p.CodigoPostal).HasMaxLength(10);
         builder.Property(p => p.Telefono).HasMaxLength(20);
         builder.Property(p => p.Email).HasMaxLength(150);
-        builder.Property(p => p.Funcion).IsRequired().HasMaxLength(100);
-        builder.Property(p => p.Servicio).HasMaxLength(100);
+        builder.Property(p => p.Matricula).HasMaxLength(50);
         builder.Property(p => p.NroExpediente).HasMaxLength(50);
         builder.Property(p => p.Activo).IsRequired();
         builder.Property(p => p.FechaCreacion).IsRequired();
@@ -61,6 +61,26 @@ public class ProfesionalConfiguration : IEntityTypeConfiguration<Profesional>
         builder.Property(p => p.Tipo)
             .HasConversion<string>()
             .HasMaxLength(20);
+
+        builder.Property(p => p.TipoEfector)
+            .HasConversion<string>()
+            .HasMaxLength(15);
+
+        builder.HasOne(p => p.Cargo)
+            .WithMany()
+            .HasForeignKey(p => p.CargoId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(p => p.AreaOperativa)
+            .WithMany()
+            .HasForeignKey(p => p.AreaOperativaId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasIndex(p => p.CargoId)
+            .HasDatabaseName("idx_profesional_cargo");
+
+        builder.HasIndex(p => p.AreaOperativaId)
+            .HasDatabaseName("idx_profesional_area_operativa");
 
         // Unique constraints
         builder.HasIndex(p => p.Dni)

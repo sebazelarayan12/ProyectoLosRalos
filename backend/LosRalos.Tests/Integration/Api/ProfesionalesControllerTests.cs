@@ -130,7 +130,9 @@ public class ProfesionalesControllerTests : IAsyncLifetime
             Domicilio = "Calle Falsa 123",
             Localidad = "San Miguel de Tucuman",
             Provincia = "Tucuman",
-            Funcion = "Medico",
+            Cargo = "Medico",
+            AreaOperativa = "Los Ralos",
+            TipoEfector = TipoEfector.Hospital,
             Nivel = Nivel.Universitario,
             Planta = Planta.PermanenteEfectivo,
             Tipo = TipoLegajo.Asistencial
@@ -279,7 +281,9 @@ public class ProfesionalesControllerTests : IAsyncLifetime
             domicilio = "Calle Enum 1",
             localidad = "San Miguel de Tucuman",
             provincia = "Tucuman",
-            funcion = "Medica",
+            cargo = "Medica",
+            areaOperativa = "Los Ralos",
+            tipoEfector = "Hospital",
             nivel = "Universitario",
             planta = "PermanenteEfectivo",
             tipo = "Asistencial"
@@ -374,12 +378,12 @@ public class ProfesionalesControllerTests : IAsyncLifetime
             BuildRequest(apellido: "Suarez", dni: "44.444.444", cuil: "20-44444444-0"));
         var original = await created.Content.ReadFromJsonAsync<ProfesionalDetalleResponse>();
 
-        var patch = new PatchProfesionalRequest { Funcion = "Enfermero" };
+        var patch = new PatchProfesionalRequest { Cargo = "Enfermero" };
         var resp = await _adminClient.PatchAsJsonAsync($"/api/v1/profesionales/{original!.Id}", patch);
 
         resp.StatusCode.Should().Be(HttpStatusCode.OK);
         var updated = await resp.Content.ReadFromJsonAsync<ProfesionalDetalleResponse>();
-        updated!.Funcion.Should().Be("Enfermero");
+        updated!.Cargo.Should().Be("ENFERMERO");
     }
 
     [Fact]
@@ -390,7 +394,7 @@ public class ProfesionalesControllerTests : IAsyncLifetime
         var original = await created.Content.ReadFromJsonAsync<ProfesionalDetalleResponse>();
 
         var resp = await _administrativoClient.PatchAsJsonAsync($"/api/v1/profesionales/{original!.Id}",
-            new PatchProfesionalRequest { Funcion = "Otro" });
+            new PatchProfesionalRequest { Cargo = "Otro" });
 
         resp.StatusCode.Should().Be(HttpStatusCode.OK);
     }

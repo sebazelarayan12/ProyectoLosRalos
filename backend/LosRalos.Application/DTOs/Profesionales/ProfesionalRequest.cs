@@ -55,12 +55,19 @@ public class ProfesionalRequest
     [EmailAddress]
     public string? Email { get; set; }
 
+    [MaxLength(50)]
+    public string? Matricula { get; set; }
+
     [Required]
     [MaxLength(100)]
-    public string Funcion { get; set; } = string.Empty;
+    public string Cargo { get; set; } = string.Empty;
 
+    [Required]
     [MaxLength(100)]
-    public string? Servicio { get; set; }
+    public string AreaOperativa { get; set; } = string.Empty;
+
+    [Required]
+    public TipoEfector TipoEfector { get; set; }
 
     [Required]
     public Nivel Nivel { get; set; }

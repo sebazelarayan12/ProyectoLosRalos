@@ -37,7 +37,6 @@ public class DocumentoServiceTests
         Domicilio = "Calle Falsa 123",
         Localidad = "Los Ralos",
         Provincia = "Tucuman",
-        Funcion = "Odontologa",
         Nivel = Nivel.Universitario,
         Planta = Planta.PermanenteEfectivo,
         Tipo = TipoLegajo.Asistencial,

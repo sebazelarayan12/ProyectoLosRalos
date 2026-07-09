@@ -11,6 +11,8 @@ namespace LosRalos.Application.Services;
 public class ProfesionalService(
     IProfesionalRepository repo,
     IAuditLogRepository auditRepo,
+    ICargoRepository cargoRepo,
+    IAreaOperativaRepository areaOperativaRepo,
     ILogger<ProfesionalService> logger) : IProfesionalService
 {
     public async Task<PaginatedResponse<ProfesionalResumenResponse>> SearchAsync(
@@ -60,7 +62,10 @@ public class ProfesionalService(
         if (await repo.ExistsCuilAsync(request.Cuil, null, ct).ConfigureAwait(false))
             throw new ConflictException("El CUIL ya existe en el sistema");
 
-        var profesional = request.ToEntity();
+        var cargo = await cargoRepo.GetOrCreateAsync(request.Cargo, ct).ConfigureAwait(false);
+        var areaOperativa = await areaOperativaRepo.GetOrCreateAsync(request.AreaOperativa, ct).ConfigureAwait(false);
+
+        var profesional = request.ToEntity(cargo, areaOperativa);
 
         await repo.AddAsync(profesional, ct).ConfigureAwait(false);
 
@@ -94,7 +99,15 @@ public class ProfesionalService(
             await repo.ExistsCuilAsync(request.Cuil, profesional.Id, ct).ConfigureAwait(false))
             throw new ConflictException("El CUIL ya existe en el sistema");
 
-        var camposModificados = profesional.ApplyPatch(request);
+        Cargo? cargo = request.Cargo is not null
+            ? await cargoRepo.GetOrCreateAsync(request.Cargo, ct).ConfigureAwait(false)
+            : null;
+
+        AreaOperativa? areaOperativa = request.AreaOperativa is not null
+            ? await areaOperativaRepo.GetOrCreateAsync(request.AreaOperativa, ct).ConfigureAwait(false)
+            : null;
+
+        var camposModificados = profesional.ApplyPatch(request, cargo, areaOperativa);
 
         if (camposModificados.Count == 0)
             return profesional.ToDetalleResponse();
@@ -191,5 +204,17 @@ public class ProfesionalService(
         await repo.DeleteAsync(profesional, ct).ConfigureAwait(false);
 
         logger.LogInformation("Profesional {ProfesionalId} eliminado definitivamente por {UsuarioId}", id, usuarioId);
+    }
+
+    public async Task<List<CargoResponse>> ListarCargosAsync(CancellationToken ct)
+    {
+        var cargos = await cargoRepo.ListAllAsync(ct).ConfigureAwait(false);
+        return cargos.Select(c => c.ToResponse()).ToList();
+    }
+
+    public async Task<List<AreaOperativaResponse>> ListarAreasOperativasAsync(CancellationToken ct)
+    {
+        var areas = await areaOperativaRepo.ListAllAsync(ct).ConfigureAwait(false);
+        return areas.Select(a => a.ToResponse()).ToList();
     }
 }

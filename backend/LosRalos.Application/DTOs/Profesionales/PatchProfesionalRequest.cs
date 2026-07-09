@@ -43,11 +43,16 @@ public class PatchProfesionalRequest
     [EmailAddress]
     public string? Email { get; set; }
 
-    [MaxLength(100)]
-    public string? Funcion { get; set; }
+    [MaxLength(50)]
+    public string? Matricula { get; set; }
 
     [MaxLength(100)]
-    public string? Servicio { get; set; }
+    public string? Cargo { get; set; }
+
+    [MaxLength(100)]
+    public string? AreaOperativa { get; set; }
+
+    public TipoEfector? TipoEfector { get; set; }
 
     public Nivel? Nivel { get; set; }
     public Planta? Planta { get; set; }

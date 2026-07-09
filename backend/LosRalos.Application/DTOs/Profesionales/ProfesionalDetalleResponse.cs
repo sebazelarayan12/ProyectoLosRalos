@@ -17,8 +17,10 @@ public class ProfesionalDetalleResponse
     public string? CodigoPostal { get; init; }
     public string? Telefono { get; init; }
     public string? Email { get; init; }
-    public string Funcion { get; init; } = string.Empty;
-    public string? Servicio { get; init; }
+    public string? Matricula { get; init; }
+    public string Cargo { get; init; } = string.Empty;
+    public string AreaOperativa { get; init; } = string.Empty;
+    public string TipoEfector { get; init; } = string.Empty;
     public string Nivel { get; init; } = string.Empty;
     public string Planta { get; init; } = string.Empty;
     public string? NroExpediente { get; init; }

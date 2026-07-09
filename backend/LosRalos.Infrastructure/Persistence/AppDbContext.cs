@@ -13,6 +13,8 @@ public sealed class AppDbContext(
     public DbSet<Profesional> Profesionales => Set<Profesional>();
     public DbSet<TipoDocumento> TiposDocumento => Set<TipoDocumento>();
     public DbSet<Documento> Documentos => Set<Documento>();
+    public DbSet<Cargo> Cargos => Set<Cargo>();
+    public DbSet<AreaOperativa> AreasOperativas => Set<AreaOperativa>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

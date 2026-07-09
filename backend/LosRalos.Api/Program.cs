@@ -144,6 +144,8 @@ builder.Services.AddSingleton<IPasswordHasher, BcryptPasswordHasher>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<IProfesionalRepository, ProfesionalRepository>();
+builder.Services.AddScoped<ICargoRepository, CargoRepository>();
+builder.Services.AddScoped<IAreaOperativaRepository, AreaOperativaRepository>();
 builder.Services.AddScoped<IProfesionalService, ProfesionalService>();
 builder.Services.AddScoped<IDocumentoRepository, DocumentoRepository>();
 builder.Services.AddScoped<ITipoDocumentoRepository, TipoDocumentoRepository>();

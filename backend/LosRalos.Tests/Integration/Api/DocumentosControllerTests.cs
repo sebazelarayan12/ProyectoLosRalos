@@ -134,7 +134,9 @@ public class DocumentosControllerTests : IAsyncLifetime
             Domicilio = "Calle Falsa 123",
             Localidad = "San Miguel de Tucuman",
             Provincia = "Tucuman",
-            Funcion = "Medico",
+            Cargo = "Medico",
+            AreaOperativa = "Los Ralos",
+            TipoEfector = TipoEfector.Hospital,
             Nivel = Nivel.Universitario,
             Planta = Planta.PermanenteEfectivo,
             Tipo = TipoLegajo.Asistencial

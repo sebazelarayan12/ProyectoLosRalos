@@ -43,7 +43,9 @@ public class ProfesionalRepository(AppDbContext db) : IProfesionalRepository
         if (!string.IsNullOrWhiteSpace(busqueda))
             q = q.Where(p =>
                 EF.Functions.ILike(p.Apellido, $"%{busqueda}%") ||
-                (p.NroExpediente != null && EF.Functions.ILike(p.NroExpediente, $"%{busqueda}%")));
+                (p.NroExpediente != null && EF.Functions.ILike(p.NroExpediente, $"%{busqueda}%")) ||
+                EF.Functions.ILike(p.Dni, $"%{busqueda}%") ||
+                EF.Functions.ILike(p.Cuil, $"%{busqueda}%"));
 
         if (tipo.HasValue)
             q = q.Where(p => p.Tipo == tipo.Value);
@@ -62,6 +64,7 @@ public class ProfesionalRepository(AppDbContext db) : IProfesionalRepository
         }
 
         var items = await q
+            .Include(p => p.Cargo)
             .OrderBy(p => p.Apellido)
             .ThenBy(p => p.FechaCreacion)
             .Take(porPagina + 1)
@@ -79,6 +82,8 @@ public class ProfesionalRepository(AppDbContext db) : IProfesionalRepository
     public async Task<Profesional?> GetByIdAsync(Guid id, CancellationToken ct)
         => await db.Profesionales
             .AsNoTracking()
+            .Include(p => p.Cargo)
+            .Include(p => p.AreaOperativa)
             .Include(p => p.Documentos.Where(d => d.EliminadoEn == null))
             .ThenInclude(d => d.TipoDocumento)
             .FirstOrDefaultAsync(p => p.Id == id, ct)
