@@ -23,7 +23,8 @@ type FiltrosProfesionalesProps = {
 
 const OPCIONES_TIPO = [
   { value: 'Asistencial', label: 'Asistencial' },
-  { value: 'Administrativo', label: 'Administrativo' },
+  { value: 'NoAsistencial', label: 'No asistencial' },
+  { value: 'CP', label: 'Cobertura de servicio (CP)' },
 ]
 
 const OPCIONES_PLANTA = [

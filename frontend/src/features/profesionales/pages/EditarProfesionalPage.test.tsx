@@ -31,12 +31,14 @@ const profesionalDetalle = {
   codigoPostal: null,
   telefono: null,
   email: null,
-  funcion: 'Tec Estadisticas',
-  servicio: null,
+  matricula: null,
+  cargo: 'Tec Estadisticas',
+  areaOperativa: 'Los Ralos',
+  tipoEfector: 'Hospital',
   nivel: 'Terciario',
   planta: 'PermanenteEfectivo',
   nroExpediente: '123/2020',
-  tipo: 'Administrativo',
+  tipo: 'NoAsistencial',
   activo: true,
   fechaCreacion: '2026-01-01T00:00:00Z',
   fechaActualizacion: '2026-01-01T00:00:00Z',
@@ -57,13 +59,20 @@ function renderPage() {
   )
 }
 
+function mockGetPorUrl() {
+  vi.mocked(api.get).mockImplementation((url: string) => {
+    if (url === '/cargos' || url === '/areas-operativas') return Promise.resolve({ data: [] })
+    return Promise.resolve({ data: profesionalDetalle })
+  })
+}
+
 describe('EditarProfesionalPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockGetPorUrl()
   })
 
   test('precarga los datos actuales del profesional en el formulario', async () => {
-    vi.mocked(api.get).mockResolvedValue({ data: profesionalDetalle })
     renderPage()
 
     expect(await screen.findByLabelText(/^apellido$/i)).toHaveValue('Perez')
@@ -72,7 +81,6 @@ describe('EditarProfesionalPage', () => {
   })
 
   test('boton volver navega al perfil del profesional', async () => {
-    vi.mocked(api.get).mockResolvedValue({ data: profesionalDetalle })
     const user = userEvent.setup()
     renderPage()
     await screen.findByLabelText(/^apellido$/i)
@@ -83,8 +91,7 @@ describe('EditarProfesionalPage', () => {
   })
 
   test('al guardar, llama a PATCH /profesionales/{id} y navega al perfil', async () => {
-    vi.mocked(api.get).mockResolvedValue({ data: profesionalDetalle })
-    vi.mocked(api.patch).mockResolvedValue({ data: { ...profesionalDetalle, funcion: 'Enfermera' } })
+    vi.mocked(api.patch).mockResolvedValue({ data: { ...profesionalDetalle, cargo: 'Enfermera' } })
     const user = userEvent.setup()
     renderPage()
     await screen.findByLabelText(/^apellido$/i)
@@ -100,7 +107,6 @@ describe('EditarProfesionalPage', () => {
   }, 15000)
 
   test('si falla el guardado, muestra un toast de error y no navega', async () => {
-    vi.mocked(api.get).mockResolvedValue({ data: profesionalDetalle })
     vi.mocked(api.patch).mockRejectedValue({ response: { data: { message: 'El DNI ya esta en uso' } } })
     const user = userEvent.setup()
     renderPage()

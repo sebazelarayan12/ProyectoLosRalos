@@ -1,11 +1,23 @@
-import { describe, test, expect, vi } from 'vitest'
+import { describe, test, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import type { ReactNode } from 'react'
 import { ProfesionalForm, type ProfesionalFormValues } from './ProfesionalForm'
 import { useUnsavedChangesWarning } from '@/hooks/useUnsavedChangesWarning'
+import { api } from '@/lib/api'
 import type { ProfesionalRequestPayload } from '../api/crearProfesional'
 
 vi.mock('@/hooks/useUnsavedChangesWarning')
+
+vi.mock('@/lib/api', () => ({
+  api: { get: vi.fn() },
+}))
+
+function wrapper({ children }: { children: ReactNode }) {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+}
 
 const valoresValidos: ProfesionalFormValues = {
   apellido: 'Gomez',
@@ -22,12 +34,24 @@ const valoresValidos: ProfesionalFormValues = {
   codigoPostal: '',
   telefono: '',
   email: '',
-  funcion: 'Chofer',
-  servicio: '',
+  matricula: '',
+  cargo: 'Chofer',
+  areaOperativa: 'Los Ralos',
+  tipoEfector: 'Hospital',
   nivel: 'Secundario',
   planta: 'Transitorio',
   nroExpediente: '',
-  tipo: 'Administrativo',
+  tipo: 'NoAsistencial',
+}
+
+async function elegirEnCombobox(
+  user: ReturnType<typeof userEvent.setup>,
+  nombreCombobox: RegExp,
+  texto: string,
+) {
+  await user.click(screen.getByRole('combobox', { name: nombreCombobox }))
+  await user.type(screen.getByPlaceholderText(/buscar o crear/i), texto)
+  await user.click(await screen.findByText(new RegExp(`crear: ${texto}`, 'i')))
 }
 
 async function llenarCamposObligatorios(user: ReturnType<typeof userEvent.setup>) {
@@ -46,19 +70,27 @@ async function llenarCamposObligatorios(user: ReturnType<typeof userEvent.setup>
   await user.clear(screen.getByLabelText(/^provincia$/i))
   await user.type(screen.getByLabelText(/^provincia$/i), valoresValidos.provincia)
   await user.click(screen.getByRole('button', { name: /datos laborales/i }))
-  await user.type(screen.getByLabelText(/^funcion$/i), valoresValidos.funcion)
+  await elegirEnCombobox(user, /^cargo$/i, valoresValidos.cargo)
+  await elegirEnCombobox(user, /area operativa/i, valoresValidos.areaOperativa)
+  await user.click(screen.getByRole('combobox', { name: /tipo de efector/i }))
+  await user.click(await screen.findByRole('option', { name: 'Hospital' }))
   await user.click(screen.getByRole('combobox', { name: /^nivel$/i }))
   await user.click(await screen.findByRole('option', { name: 'Secundario' }))
   await user.click(screen.getByRole('combobox', { name: /^planta$/i }))
   await user.click(await screen.findByRole('option', { name: 'Transitorio' }))
   await user.click(screen.getByRole('combobox', { name: /tipo de legajo/i }))
-  await user.click(await screen.findByRole('option', { name: 'Administrativo' }))
+  await user.click(await screen.findByRole('option', { name: 'No asistencial' }))
 }
 
 describe('ProfesionalForm', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.mocked(api.get).mockResolvedValue({ data: [] })
+  })
+
   test('muestra errores de validacion si se envia vacio', async () => {
     const user = userEvent.setup()
-    render(<ProfesionalForm modo="crear" onSubmit={vi.fn()} />)
+    render(<ProfesionalForm modo="crear" onSubmit={vi.fn()} />, { wrapper })
 
     await user.click(screen.getByRole('button', { name: /crear profesional/i }))
 
@@ -70,7 +102,7 @@ describe('ProfesionalForm', () => {
     async () => {
       const onSubmit = vi.fn()
       const user = userEvent.setup()
-      render(<ProfesionalForm modo="crear" onSubmit={onSubmit} />)
+      render(<ProfesionalForm modo="crear" onSubmit={onSubmit} />, { wrapper })
 
       await llenarCamposObligatorios(user)
       await user.click(screen.getByRole('button', { name: /crear profesional/i }))
@@ -79,16 +111,20 @@ describe('ProfesionalForm', () => {
       const payload = onSubmit.mock.calls[0][0] as ProfesionalRequestPayload
       expect(payload.apellido).toBe('Gomez')
       expect(payload.sexo).toBe('Masculino')
-      expect(payload.tipo).toBe('Administrativo')
+      expect(payload.tipo).toBe('NoAsistencial')
+      expect(payload.cargo).toBe('Chofer')
+      expect(payload.areaOperativa).toBe('Los Ralos')
+      expect(payload.tipoEfector).toBe('Hospital')
       expect(payload.barrio).toBeNull()
       expect(payload.telefono).toBeNull()
+      expect(payload.matricula).toBeNull()
     },
     15000,
   )
 
   test('avisa de cambios sin guardar cuando el usuario modifica un campo', async () => {
     const user = userEvent.setup()
-    render(<ProfesionalForm modo="crear" onSubmit={vi.fn()} />)
+    render(<ProfesionalForm modo="crear" onSubmit={vi.fn()} />, { wrapper })
 
     expect(useUnsavedChangesWarning).toHaveBeenCalledWith(false)
 
@@ -104,6 +140,7 @@ describe('ProfesionalForm', () => {
         valoresIniciales={valoresValidos}
         onSubmit={vi.fn()}
       />,
+      { wrapper },
     )
 
     expect(screen.getByLabelText(/^apellido$/i)).toHaveValue('Gomez')

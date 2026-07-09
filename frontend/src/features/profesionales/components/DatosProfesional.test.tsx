@@ -19,12 +19,14 @@ const profesional: ProfesionalDetalle = {
   codigoPostal: '4000',
   telefono: '3811234567',
   email: 'sara@example.com',
-  funcion: 'Tec Estadisticas',
-  servicio: 'Estadistica',
+  matricula: 'MP-1234',
+  cargo: 'Tec Estadisticas',
+  areaOperativa: 'Los Ralos',
+  tipoEfector: 'Hospital',
   nivel: 'Tecnico',
   planta: 'PermanenteEfectivo',
   nroExpediente: '123/2020',
-  tipo: 'Administrativo',
+  tipo: 'NoAsistencial',
   activo: true,
   fechaCreacion: '2026-01-01T00:00:00Z',
   fechaActualizacion: '2026-01-01T00:00:00Z',
@@ -41,11 +43,11 @@ describe('DatosProfesional', () => {
     expect(screen.getByText('sara@example.com')).toBeInTheDocument()
     expect(screen.getByText('3811234567')).toBeInTheDocument()
     expect(screen.getByText('Tec Estadisticas')).toBeInTheDocument()
-    expect(screen.getByText('Estadistica')).toBeInTheDocument()
+    expect(screen.getByText('Los Ralos')).toBeInTheDocument()
   })
 
   test('muestra guion cuando un campo opcional es null', () => {
-    render(<DatosProfesional profesional={{ ...profesional, servicio: null, telefono: null }} />)
+    render(<DatosProfesional profesional={{ ...profesional, matricula: null, telefono: null }} />)
 
     expect(screen.getAllByText('-').length).toBeGreaterThan(0)
   })

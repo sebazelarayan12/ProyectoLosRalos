@@ -8,7 +8,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { SelectField } from '@/components/SelectField'
+import { ComboboxCatalogo } from '@/components/ComboboxCatalogo'
 import { useUnsavedChangesWarning } from '@/hooks/useUnsavedChangesWarning'
+import { useCargos } from '../hooks/useCargos'
+import { useAreasOperativas } from '../hooks/useAreasOperativas'
 import type { ProfesionalRequestPayload } from '../api/crearProfesional'
 
 type EstadoSeccion = { variant: 'secondary' | 'outline' | 'destructive'; label: string }
@@ -72,14 +75,16 @@ const profesionalSchema = z.object({
   email: z.string().refine((v) => v === '' || z.email().safeParse(v).success, {
     message: 'Email invalido',
   }),
-  funcion: z.string().min(1, 'Funcion requerida'),
-  servicio: z.string(),
+  matricula: z.string(),
+  cargo: z.string().min(1, 'Cargo requerido'),
+  areaOperativa: z.string().min(1, 'Area operativa requerida'),
+  tipoEfector: z.enum(['Hospital', 'CAPS'], { message: 'Tipo de efector requerido' }),
   nivel: z.enum(['Secundario', 'Terciario', 'Universitario'], { message: 'Nivel requerido' }),
   planta: z.enum(['Transitorio', 'PermanenteInterino', 'PermanenteEfectivo'], {
     message: 'Planta requerida',
   }),
   nroExpediente: z.string(),
-  tipo: z.enum(['Asistencial', 'Administrativo'], { message: 'Tipo de legajo requerido' }),
+  tipo: z.enum(['Asistencial', 'NoAsistencial', 'CP'], { message: 'Tipo de legajo requerido' }),
 })
 
 export type ProfesionalFormValues = z.infer<typeof profesionalSchema>
@@ -99,8 +104,10 @@ const valoresPorDefecto: ProfesionalFormValues = {
   codigoPostal: '',
   telefono: '',
   email: '',
-  funcion: '',
-  servicio: '',
+  matricula: '',
+  cargo: '',
+  areaOperativa: '',
+  tipoEfector: '' as never,
   nivel: '' as never,
   planta: '' as never,
   nroExpediente: '',
@@ -131,7 +138,12 @@ const opcionesPlanta = [
 ]
 const opcionesTipo = [
   { value: 'Asistencial', label: 'Asistencial' },
-  { value: 'Administrativo', label: 'Administrativo' },
+  { value: 'NoAsistencial', label: 'No asistencial' },
+  { value: 'CP', label: 'Cobertura de servicio (CP)' },
+]
+const opcionesTipoEfector = [
+  { value: 'Hospital', label: 'Hospital' },
+  { value: 'CAPS', label: 'CAPS' },
 ]
 
 function aNuloSiVacio(valor: string): string | null {
@@ -142,7 +154,7 @@ const camposRequeridosPorSeccion = {
   personales: ['apellido', 'nombre', 'dni', 'cuil', 'fechaNacimiento', 'sexo', 'estadoCivil'],
   domicilio: ['domicilio', 'localidad', 'provincia'],
   contacto: [],
-  laborales: ['funcion', 'nivel', 'planta', 'tipo'],
+  laborales: ['cargo', 'areaOperativa', 'tipoEfector', 'nivel', 'planta', 'tipo'],
 } satisfies Record<string, (keyof ProfesionalFormValues)[]>
 
 function estadoSeccion(
@@ -176,6 +188,9 @@ export function ProfesionalForm({ modo, valoresIniciales, onSubmit }: Profesiona
 
   useUnsavedChangesWarning(isDirty)
 
+  const { data: cargos = [] } = useCargos()
+  const { data: areasOperativas = [] } = useAreasOperativas()
+
   const valores = watch()
 
   const submit = (values: ProfesionalFormValues) => {
@@ -194,8 +209,10 @@ export function ProfesionalForm({ modo, valoresIniciales, onSubmit }: Profesiona
       codigoPostal: aNuloSiVacio(values.codigoPostal),
       telefono: aNuloSiVacio(values.telefono),
       email: aNuloSiVacio(values.email),
-      funcion: values.funcion,
-      servicio: aNuloSiVacio(values.servicio),
+      matricula: aNuloSiVacio(values.matricula),
+      cargo: values.cargo,
+      areaOperativa: values.areaOperativa,
+      tipoEfector: values.tipoEfector,
       nivel: values.nivel,
       planta: values.planta,
       nroExpediente: aNuloSiVacio(values.nroExpediente),
@@ -321,18 +338,48 @@ export function ProfesionalForm({ modo, valoresIniciales, onSubmit }: Profesiona
         value="laborales"
         icon={Briefcase}
         titulo="Datos laborales"
-        subtitulo="Funcion, planta y expediente"
+        subtitulo="Cargo, planta y expediente"
         estado={estadoSeccion(camposRequeridosPorSeccion.laborales, errors, valores)}
       >
-        <Field data-invalid={!!errors.funcion}>
-          <FieldLabel htmlFor="funcion">Funcion</FieldLabel>
-          <Input id="funcion" aria-invalid={!!errors.funcion} {...register('funcion')} />
-          {errors.funcion && <FieldError>{errors.funcion.message}</FieldError>}
-        </Field>
         <Field>
-          <FieldLabel htmlFor="servicio">Servicio</FieldLabel>
-          <Input id="servicio" {...register('servicio')} />
+          <FieldLabel htmlFor="matricula">Matricula</FieldLabel>
+          <Input id="matricula" {...register('matricula')} />
         </Field>
+        <Field data-invalid={!!errors.cargo}>
+          <FieldLabel htmlFor="cargo">Cargo</FieldLabel>
+          <ComboboxCatalogo
+            id="cargo"
+            value={valores.cargo}
+            onChange={(v) => setValue('cargo', v, { shouldValidate: true })}
+            items={cargos}
+            placeholder="Ej: Enfermera, Medico"
+            emptyMessage="No hay cargos cargados"
+          />
+          {errors.cargo && <FieldError>{errors.cargo.message}</FieldError>}
+        </Field>
+        <Field data-invalid={!!errors.areaOperativa}>
+          <FieldLabel htmlFor="areaOperativa">Area operativa</FieldLabel>
+          <ComboboxCatalogo
+            id="areaOperativa"
+            value={valores.areaOperativa}
+            onChange={(v) => setValue('areaOperativa', v, { shouldValidate: true })}
+            items={areasOperativas}
+            placeholder="Ej: Los Ralos, Las Cejas"
+            emptyMessage="No hay areas operativas cargadas"
+          />
+          {errors.areaOperativa && <FieldError>{errors.areaOperativa.message}</FieldError>}
+        </Field>
+        <SelectField
+          id="tipoEfector"
+          label="Tipo de efector"
+          placeholder="Elegir tipo de efector"
+          value={valores.tipoEfector}
+          onValueChange={(v) =>
+            setValue('tipoEfector', v as ProfesionalFormValues['tipoEfector'], { shouldValidate: true })
+          }
+          options={opcionesTipoEfector}
+          error={errors.tipoEfector?.message}
+        />
         <SelectField
           id="nivel"
           label="Nivel"

@@ -19,12 +19,14 @@ const payload: ProfesionalRequestPayload = {
   codigoPostal: null,
   telefono: null,
   email: null,
-  funcion: 'Chofer',
-  servicio: null,
+  matricula: null,
+  cargo: 'Chofer',
+  areaOperativa: 'Los Ralos',
+  tipoEfector: 'Hospital',
   nivel: 'Secundario',
   planta: 'Transitorio',
   nroExpediente: null,
-  tipo: 'Administrativo',
+  tipo: 'NoAsistencial',
 }
 
 describe('editarProfesional', () => {

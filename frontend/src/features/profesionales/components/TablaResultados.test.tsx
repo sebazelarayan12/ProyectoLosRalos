@@ -9,8 +9,8 @@ const profesionales: ProfesionalResumen[] = [
     id: '11111111-1111-1111-1111-111111111111',
     apellido: 'Perez',
     nombre: 'Ana',
-    funcion: 'Enfermera',
-    servicio: 'Guardia',
+    matricula: 'MP-1234',
+    cargo: 'Enfermera',
     nroExpediente: '1/2020',
     tipo: 'Asistencial',
   },
@@ -18,25 +18,25 @@ const profesionales: ProfesionalResumen[] = [
     id: '22222222-2222-2222-2222-222222222222',
     apellido: 'Gomez',
     nombre: 'Luis',
-    funcion: 'Chofer',
-    servicio: null,
+    matricula: null,
+    cargo: 'Chofer',
     nroExpediente: null,
-    tipo: 'Administrativo',
+    tipo: 'NoAsistencial',
   },
 ]
 
 describe('TablaResultados', () => {
-  test('muestra apellido, nombre, funcion, expediente y tipo de cada profesional', () => {
+  test('muestra apellido, nombre, cargo, expediente y tipo de cada profesional', () => {
     render(<TablaResultados profesionales={profesionales} onVerLegajo={vi.fn()} />)
 
     expect(screen.getByText('Perez, Ana')).toBeInTheDocument()
-    expect(screen.getByText('Enfermera / Guardia')).toBeInTheDocument()
+    expect(screen.getByText('Enfermera')).toBeInTheDocument()
     expect(screen.getByText('1/2020')).toBeInTheDocument()
     expect(screen.getByText('Asistencial')).toBeInTheDocument()
 
     expect(screen.getByText('Gomez, Luis')).toBeInTheDocument()
     expect(screen.getByText('Chofer')).toBeInTheDocument()
-    expect(screen.getByText('Administrativo')).toBeInTheDocument()
+    expect(screen.getByText('NoAsistencial')).toBeInTheDocument()
   })
 
   test('nunca muestra DNI ni CUIL', () => {

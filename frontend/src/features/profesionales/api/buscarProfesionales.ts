@@ -1,6 +1,6 @@
 import type { AxiosInstance } from 'axios'
 
-export type TipoLegajo = 'Asistencial' | 'Administrativo'
+export type TipoLegajo = 'Asistencial' | 'NoAsistencial' | 'CP'
 export type Planta = 'Transitorio' | 'PermanenteInterino' | 'PermanenteEfectivo'
 export type EstadoProfesionalFiltro = 'Activos' | 'Inactivos' | 'Todos'
 
@@ -17,8 +17,8 @@ export type ProfesionalResumen = {
   id: string
   apellido: string
   nombre: string
-  funcion: string
-  servicio: string | null
+  matricula: string | null
+  cargo: string
   nroExpediente: string | null
   tipo: TipoLegajo
 }

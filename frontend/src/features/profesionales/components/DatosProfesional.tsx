@@ -42,6 +42,7 @@ export function DatosProfesional({ profesional }: DatosProfesionalProps) {
       <SectionCard icon={User} titulo="Datos personales">
         <Campo label="DNI" valor={profesional.dni} mono />
         <Campo label="CUIL" valor={profesional.cuil} mono />
+        <Campo label="Matricula" valor={profesional.matricula} mono />
         <Campo label="Fecha de nacimiento" valor={profesional.fechaNacimiento} />
         <Campo label="Sexo" valor={profesional.sexo} />
         <Campo label="Estado civil" valor={profesional.estadoCivil} />
@@ -58,8 +59,9 @@ export function DatosProfesional({ profesional }: DatosProfesionalProps) {
       </SectionCard>
 
       <SectionCard icon={Briefcase} titulo="Cargo">
-        <Campo label="Funcion" valor={profesional.funcion} />
-        <Campo label="Servicio" valor={profesional.servicio} />
+        <Campo label="Cargo" valor={profesional.cargo} />
+        <Campo label="Area operativa" valor={profesional.areaOperativa} />
+        <Campo label="Tipo de efector" valor={profesional.tipoEfector} />
         <Campo label="Nivel" valor={profesional.nivel} />
         <Campo label="Planta" valor={profesional.planta} />
       </SectionCard>

@@ -8,7 +8,7 @@ import { api } from '@/lib/api'
 import { toast } from 'sonner'
 
 vi.mock('@/lib/api', () => ({
-  api: { post: vi.fn() },
+  api: { post: vi.fn(), get: vi.fn() },
 }))
 
 vi.mock('sonner', () => ({
@@ -43,13 +43,20 @@ async function completarYEnviar(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText(/^domicilio$/i), 'Calle Falsa 123')
   await user.type(screen.getByLabelText(/^localidad$/i), 'San Miguel de Tucuman')
   await user.click(screen.getByRole('button', { name: /datos laborales/i }))
-  await user.type(screen.getByLabelText(/^funcion$/i), 'Chofer')
+  await user.click(screen.getByRole('combobox', { name: /^cargo$/i }))
+  await user.type(screen.getByPlaceholderText(/buscar o crear/i), 'Chofer')
+  await user.click(await screen.findByText(/crear: chofer/i))
+  await user.click(screen.getByRole('combobox', { name: /area operativa/i }))
+  await user.type(screen.getByPlaceholderText(/buscar o crear/i), 'Los Ralos')
+  await user.click(await screen.findByText(/crear: los ralos/i))
+  await user.click(screen.getByRole('combobox', { name: /tipo de efector/i }))
+  await user.click(await screen.findByRole('option', { name: 'Hospital' }))
   await user.click(screen.getByRole('combobox', { name: /^nivel$/i }))
   await user.click(await screen.findByRole('option', { name: 'Secundario' }))
   await user.click(screen.getByRole('combobox', { name: /^planta$/i }))
   await user.click(await screen.findByRole('option', { name: 'Transitorio' }))
   await user.click(screen.getByRole('combobox', { name: /tipo de legajo/i }))
-  await user.click(await screen.findByRole('option', { name: 'Administrativo' }))
+  await user.click(await screen.findByRole('option', { name: 'No asistencial' }))
 
   await user.click(screen.getByRole('button', { name: /crear profesional/i }))
 }
@@ -57,6 +64,7 @@ async function completarYEnviar(user: ReturnType<typeof userEvent.setup>) {
 describe('CrearProfesionalPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.mocked(api.get).mockResolvedValue({ data: [] })
   })
 
   test('al enviar el formulario, llama a POST /profesionales y navega al perfil creado', async () => {

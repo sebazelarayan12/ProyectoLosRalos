@@ -20,8 +20,10 @@ export type ProfesionalRequestPayload = {
   codigoPostal: string | null
   telefono: string | null
   email: string | null
-  funcion: string
-  servicio: string | null
+  matricula: string | null
+  cargo: string
+  areaOperativa: string
+  tipoEfector: 'Hospital' | 'CAPS'
   nivel: Nivel
   planta: ProfesionalDetalle['planta']
   nroExpediente: string | null

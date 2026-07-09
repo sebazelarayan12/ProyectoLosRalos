@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { api } from '@/lib/api'
 import { extraerMensajeError } from '@/lib/extraerMensajeError'
+import { colorTipoLegajo } from '@/lib/tipoLegajoColor'
 import { VolverBusquedaButton } from './VolverBusquedaButton'
 import { desactivarProfesional } from '../api/desactivarProfesional'
 import { reactivarProfesional } from '../api/reactivarProfesional'
@@ -188,7 +189,7 @@ export function PerfilTopbar({
             {nroExpediente && tipo ? <span className="size-[3px] rounded-full bg-border" /> : null}
             {tipo ? (
               <Badge variant="secondary" className="gap-1.5 font-normal">
-                <span className={`size-1.5 rounded-full ${tipo === 'Asistencial' ? 'bg-success' : 'bg-primary'}`} />
+                <span className={`size-1.5 rounded-full ${colorTipoLegajo(tipo)}`} />
                 {tipo}
               </Badge>
             ) : null}

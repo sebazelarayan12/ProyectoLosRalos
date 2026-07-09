@@ -21,7 +21,7 @@ describe('FiltrosProfesionales', () => {
 
     await user.click(screen.getByRole('button', { name: /filtros/i }))
     await user.click(screen.getByRole('combobox', { name: /tipo de legajo/i }))
-    await user.click(await screen.findByRole('option', { name: /asistencial/i }))
+    await user.click(await screen.findByRole('option', { name: /^asistencial$/i }))
 
     expect(onFiltrosChange).toHaveBeenCalledWith({ tipo: 'Asistencial', planta: undefined })
   })

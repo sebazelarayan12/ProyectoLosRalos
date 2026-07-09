@@ -17,8 +17,8 @@ const respuestaConResultados = {
       id: '11111111-1111-1111-1111-111111111111',
       apellido: 'Perez',
       nombre: 'Ana',
-      funcion: 'Enfermera',
-      servicio: 'Guardia',
+      matricula: 'MP-1234',
+      cargo: 'Enfermera',
       nroExpediente: '1/2020',
       tipo: 'Asistencial',
     },
@@ -133,7 +133,7 @@ describe('BusquedaProfesionalesPage', () => {
 
     await user.click(screen.getByRole('button', { name: /^filtros$/i }))
     await user.click(screen.getByRole('combobox', { name: /tipo de legajo/i }))
-    await user.click(await screen.findByRole('option', { name: /asistencial/i }))
+    await user.click(await screen.findByRole('option', { name: /^asistencial$/i }))
 
     await waitFor(() => {
       expect(api.get).toHaveBeenCalledWith(

@@ -26,8 +26,10 @@ export type ProfesionalDetalle = {
   codigoPostal: string | null
   telefono: string | null
   email: string | null
-  funcion: string
-  servicio: string | null
+  matricula: string | null
+  cargo: string
+  areaOperativa: string
+  tipoEfector: string
   nivel: string
   planta: Planta
   nroExpediente: string | null
