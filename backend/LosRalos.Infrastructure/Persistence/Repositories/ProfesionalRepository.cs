@@ -45,7 +45,7 @@ public class ProfesionalRepository(AppDbContext db) : IProfesionalRepository
                 EF.Functions.ILike(p.Apellido, $"%{busqueda}%") ||
                 (p.NroExpediente != null && EF.Functions.ILike(p.NroExpediente, $"%{busqueda}%")) ||
                 EF.Functions.ILike(p.Dni, $"%{busqueda}%") ||
-                EF.Functions.ILike(p.Cuil, $"%{busqueda}%"));
+                (p.Cuil != null && EF.Functions.ILike(p.Cuil, $"%{busqueda}%")));
 
         if (tipo.HasValue)
             q = q.Where(p => p.Tipo == tipo.Value);
@@ -97,7 +97,7 @@ public class ProfesionalRepository(AppDbContext db) : IProfesionalRepository
         return await q.AnyAsync(ct).ConfigureAwait(false);
     }
 
-    public async Task<bool> ExistsCuilAsync(string cuil, Guid? excludeId, CancellationToken ct)
+    public async Task<bool> ExistsCuilAsync(string? cuil, Guid? excludeId, CancellationToken ct)
     {
         var q = db.Profesionales.Where(p => p.Cuil == cuil);
         if (excludeId.HasValue)

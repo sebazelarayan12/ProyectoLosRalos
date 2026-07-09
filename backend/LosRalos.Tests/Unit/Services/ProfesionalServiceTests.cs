@@ -156,6 +156,41 @@ public class ProfesionalServiceTests
     }
 
     [Fact]
+    public async Task Create_SinNivel_CreaProfesionalConNivelNull()
+    {
+        var req = RequestValido();
+        req.Nivel = null;
+        _repo.ExistsDniAsync(req.Dni, null, Arg.Any<CancellationToken>()).Returns(false);
+        _repo.ExistsCuilAsync(req.Cuil, null, Arg.Any<CancellationToken>()).Returns(false);
+
+        var result = await CrearServicio().CreateAsync(req, UsuarioId, NombreUsuario, "1.2.3.4");
+
+        result.Nivel.Should().BeNull();
+
+        await _repo.Received(1).AddAsync(
+            Arg.Is<Profesional>(p => p.Nivel == null),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Create_SinCuil_CreaProfesionalConCuilNullYNoConsultaDuplicado()
+    {
+        var req = RequestValido();
+        req.Cuil = null;
+        _repo.ExistsDniAsync(req.Dni, null, Arg.Any<CancellationToken>()).Returns(false);
+
+        var result = await CrearServicio().CreateAsync(req, UsuarioId, NombreUsuario, "1.2.3.4");
+
+        result.Cuil.Should().BeNull();
+
+        await _repo.DidNotReceive().ExistsCuilAsync(Arg.Any<string>(), Arg.Any<Guid?>(), Arg.Any<CancellationToken>());
+
+        await _repo.Received(1).AddAsync(
+            Arg.Is<Profesional>(p => p.Cuil == null),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task Update_ProfesionalNoExistente_LanzaNotFoundException()
     {
         var id = Guid.NewGuid();

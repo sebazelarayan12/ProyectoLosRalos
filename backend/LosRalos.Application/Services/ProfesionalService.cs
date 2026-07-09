@@ -59,7 +59,8 @@ public class ProfesionalService(
         if (await repo.ExistsDniAsync(request.Dni, null, ct).ConfigureAwait(false))
             throw new ConflictException("El DNI ya existe en el sistema");
 
-        if (await repo.ExistsCuilAsync(request.Cuil, null, ct).ConfigureAwait(false))
+        if (request.Cuil is not null &&
+            await repo.ExistsCuilAsync(request.Cuil, null, ct).ConfigureAwait(false))
             throw new ConflictException("El CUIL ya existe en el sistema");
 
         var cargo = await cargoRepo.GetOrCreateAsync(request.Cargo, ct).ConfigureAwait(false);

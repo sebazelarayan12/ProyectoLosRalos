@@ -27,7 +27,7 @@ public class ProfesionalConfiguration : IEntityTypeConfiguration<Profesional>
         builder.Property(p => p.Apellido).IsRequired().HasMaxLength(100);
         builder.Property(p => p.Nombre).IsRequired().HasMaxLength(100);
         builder.Property(p => p.Dni).IsRequired().HasMaxLength(15);
-        builder.Property(p => p.Cuil).IsRequired().HasMaxLength(15);
+        builder.Property(p => p.Cuil).HasMaxLength(15);
         builder.Property(p => p.FechaNacimiento).IsRequired();
         builder.Property(p => p.Domicilio).IsRequired().HasMaxLength(200);
         builder.Property(p => p.Barrio).HasMaxLength(100);

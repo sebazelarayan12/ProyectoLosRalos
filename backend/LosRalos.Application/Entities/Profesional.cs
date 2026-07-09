@@ -8,7 +8,7 @@ public class Profesional
     public string Apellido { get; set; } = string.Empty;
     public string Nombre { get; set; } = string.Empty;
     public string Dni { get; set; } = string.Empty;
-    public string Cuil { get; set; } = string.Empty;
+    public string? Cuil { get; set; }
     public DateOnly FechaNacimiento { get; set; }
     public Sexo Sexo { get; set; }
     public EstadoCivil EstadoCivil { get; set; }
@@ -25,7 +25,7 @@ public class Profesional
     public Guid AreaOperativaId { get; set; }
     public AreaOperativa? AreaOperativa { get; set; }
     public TipoEfector TipoEfector { get; set; }
-    public Nivel Nivel { get; set; }
+    public Nivel? Nivel { get; set; }
     public Planta Planta { get; set; }
     public string? NroExpediente { get; set; }
     public TipoLegajo Tipo { get; set; }

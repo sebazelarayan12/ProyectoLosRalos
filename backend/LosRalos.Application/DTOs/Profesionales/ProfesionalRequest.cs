@@ -17,9 +17,8 @@ public class ProfesionalRequest
     [RegularExpression(@"^\d{1,2}\.\d{3}\.\d{3}$", ErrorMessage = "Formato de DNI invalido. Ejemplo: 12.345.678")]
     public string Dni { get; set; } = string.Empty;
 
-    [Required]
     [RegularExpression(@"^\d{2}-\d{8}-\d{1}$", ErrorMessage = "Formato de CUIL invalido. Ejemplo: 20-12345678-0")]
-    public string Cuil { get; set; } = string.Empty;
+    public string? Cuil { get; set; }
 
     [Required]
     public DateOnly FechaNacimiento { get; set; }
@@ -69,8 +68,7 @@ public class ProfesionalRequest
     [Required]
     public TipoEfector TipoEfector { get; set; }
 
-    [Required]
-    public Nivel Nivel { get; set; }
+    public Nivel? Nivel { get; set; }
 
     [Required]
     public Planta Planta { get; set; }

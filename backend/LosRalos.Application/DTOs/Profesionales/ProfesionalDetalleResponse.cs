@@ -6,7 +6,7 @@ public class ProfesionalDetalleResponse
     public string Apellido { get; init; } = string.Empty;
     public string Nombre { get; init; } = string.Empty;
     public string Dni { get; init; } = string.Empty;
-    public string Cuil { get; init; } = string.Empty;
+    public string? Cuil { get; init; }
     public DateOnly FechaNacimiento { get; init; }
     public string Sexo { get; init; } = string.Empty;
     public string EstadoCivil { get; init; } = string.Empty;
@@ -21,7 +21,7 @@ public class ProfesionalDetalleResponse
     public string Cargo { get; init; } = string.Empty;
     public string AreaOperativa { get; init; } = string.Empty;
     public string TipoEfector { get; init; } = string.Empty;
-    public string Nivel { get; init; } = string.Empty;
+    public string? Nivel { get; init; }
     public string Planta { get; init; } = string.Empty;
     public string? NroExpediente { get; init; }
     public string Tipo { get; init; } = string.Empty;

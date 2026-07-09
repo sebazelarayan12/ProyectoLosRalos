@@ -25,7 +25,7 @@ public static class ProfesionalMappingExtensions
         Cargo = p.Cargo?.Nombre ?? string.Empty,
         AreaOperativa = p.AreaOperativa?.Nombre ?? string.Empty,
         TipoEfector = p.TipoEfector.ToString(),
-        Nivel = p.Nivel.ToString(),
+        Nivel = p.Nivel?.ToString(),
         Planta = p.Planta.ToString(),
         NroExpediente = p.NroExpediente,
         Tipo = p.Tipo.ToString(),
