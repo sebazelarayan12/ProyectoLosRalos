@@ -18,6 +18,8 @@ type TablaResultadosProps = {
 }
 
 function TipoBadge({ tipo }: { tipo: ProfesionalResumen['tipo'] }) {
+  if (!tipo) return <span className="text-sm text-muted-foreground">-</span>
+
   return (
     <Badge variant="secondary" className="gap-1.5 font-normal">
       <span className={`size-1.5 rounded-full ${colorTipoLegajo(tipo)}`} />
@@ -42,6 +44,14 @@ export function TablaResultados({ profesionales, onVerLegajo }: TablaResultadosP
             </div>
             <div className="flex flex-col gap-1.5 text-sm">
               <div className="flex items-baseline gap-2.5">
+                <span className="w-[86px] shrink-0 text-xs text-muted-foreground">DNI</span>
+                <span className="tabular-nums">{profesional.dni}</span>
+              </div>
+              <div className="flex items-baseline gap-2.5">
+                <span className="w-[86px] shrink-0 text-xs text-muted-foreground">CUIL</span>
+                <span className="tabular-nums">{profesional.cuil ?? '-'}</span>
+              </div>
+              <div className="flex items-baseline gap-2.5">
                 <span className="w-[86px] shrink-0 text-xs text-muted-foreground">Cargo</span>
                 <span>{profesional.cargo}</span>
               </div>
@@ -65,6 +75,8 @@ export function TablaResultados({ profesionales, onVerLegajo }: TablaResultadosP
         <TableHeader>
           <TableRow className="bg-muted/40 hover:bg-muted/40">
             <TableHead>Apellido y Nombre</TableHead>
+            <TableHead>DNI</TableHead>
+            <TableHead>CUIL</TableHead>
             <TableHead>Cargo</TableHead>
             <TableHead>N. Expediente</TableHead>
             <TableHead>Tipo</TableHead>
@@ -77,6 +89,8 @@ export function TablaResultados({ profesionales, onVerLegajo }: TablaResultadosP
               <TableCell className="font-medium">
                 {profesional.apellido}, {profesional.nombre}
               </TableCell>
+              <TableCell className="tabular-nums text-muted-foreground">{profesional.dni}</TableCell>
+              <TableCell className="tabular-nums text-muted-foreground">{profesional.cuil ?? '-'}</TableCell>
               <TableCell className="text-muted-foreground">{profesional.cargo}</TableCell>
               <TableCell className="tabular-nums">
                 {profesional.nroExpediente ? profesional.nroExpediente : '-'}

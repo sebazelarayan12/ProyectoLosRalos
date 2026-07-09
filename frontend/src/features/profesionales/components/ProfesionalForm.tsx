@@ -56,17 +56,18 @@ function SeccionForm({
   )
 }
 
+const vacioO = <T extends string>(valores: [T, ...T[]]) =>
+  z.union([z.enum(valores), z.literal('')])
+
 const profesionalSchema = z.object({
   apellido: z.string().min(1, 'Apellido requerido'),
   nombre: z.string().min(1, 'Nombre requerido'),
   dni: z.string().regex(/^\d{1,2}\.\d{3}\.\d{3}$/, 'Formato invalido. Ejemplo: 12.345.678'),
-  cuil: z.string().regex(/^\d{2}-\d{8}-\d{1}$/, 'Formato invalido. Ejemplo: 20-12345678-0'),
+  cuil: z.union([z.string().regex(/^\d{2}-\d{8}-\d{1}$/, 'Formato invalido. Ejemplo: 20-12345678-0'), z.literal('')]),
   fechaNacimiento: z.string().min(1, 'Fecha de nacimiento requerida'),
   sexo: z.enum(['Masculino', 'Femenino', 'Otro'], { message: 'Sexo requerido' }),
-  estadoCivil: z.enum(['Soltero', 'Casado', 'Divorciado', 'Viudo', 'Otro'], {
-    message: 'Estado civil requerido',
-  }),
-  domicilio: z.string().min(1, 'Domicilio requerido'),
+  estadoCivil: vacioO(['Soltero', 'Casado', 'Divorciado', 'Viudo', 'Otro']),
+  domicilio: z.string(),
   barrio: z.string(),
   localidad: z.string().min(1, 'Localidad requerida'),
   provincia: z.string().min(1, 'Provincia requerida'),
@@ -79,12 +80,10 @@ const profesionalSchema = z.object({
   cargo: z.string().min(1, 'Cargo requerido'),
   areaOperativa: z.string().min(1, 'Area operativa requerida'),
   tipoEfector: z.enum(['Hospital', 'CAPS'], { message: 'Tipo de efector requerido' }),
-  nivel: z.enum(['Secundario', 'Terciario', 'Universitario'], { message: 'Nivel requerido' }),
-  planta: z.enum(['Transitorio', 'PermanenteInterino', 'PermanenteEfectivo'], {
-    message: 'Planta requerida',
-  }),
+  nivel: vacioO(['Secundario', 'Terciario', 'Universitario']),
+  planta: vacioO(['Transitorio', 'PermanenteInterino', 'PermanenteEfectivo']),
   nroExpediente: z.string(),
-  tipo: z.enum(['Asistencial', 'NoAsistencial', 'CP'], { message: 'Tipo de legajo requerido' }),
+  tipo: vacioO(['Asistencial', 'NoAsistencial', 'CP']),
 })
 
 export type ProfesionalFormValues = z.infer<typeof profesionalSchema>
@@ -151,10 +150,10 @@ function aNuloSiVacio(valor: string): string | null {
 }
 
 const camposRequeridosPorSeccion = {
-  personales: ['apellido', 'nombre', 'dni', 'cuil', 'fechaNacimiento', 'sexo', 'estadoCivil'],
-  domicilio: ['domicilio', 'localidad', 'provincia'],
+  personales: ['apellido', 'nombre', 'dni', 'fechaNacimiento', 'sexo'],
+  domicilio: ['localidad', 'provincia'],
   contacto: [],
-  laborales: ['cargo', 'areaOperativa', 'tipoEfector', 'nivel', 'planta', 'tipo'],
+  laborales: ['cargo', 'areaOperativa', 'tipoEfector'],
 } satisfies Record<string, (keyof ProfesionalFormValues)[]>
 
 function estadoSeccion(
@@ -198,11 +197,11 @@ export function ProfesionalForm({ modo, valoresIniciales, onSubmit }: Profesiona
       apellido: values.apellido,
       nombre: values.nombre,
       dni: values.dni,
-      cuil: values.cuil,
+      cuil: aNuloSiVacio(values.cuil),
       fechaNacimiento: values.fechaNacimiento,
       sexo: values.sexo,
-      estadoCivil: values.estadoCivil,
-      domicilio: values.domicilio,
+      estadoCivil: aNuloSiVacio(values.estadoCivil),
+      domicilio: aNuloSiVacio(values.domicilio),
       barrio: aNuloSiVacio(values.barrio),
       localidad: values.localidad,
       provincia: values.provincia,
@@ -213,10 +212,10 @@ export function ProfesionalForm({ modo, valoresIniciales, onSubmit }: Profesiona
       cargo: values.cargo,
       areaOperativa: values.areaOperativa,
       tipoEfector: values.tipoEfector,
-      nivel: values.nivel,
-      planta: values.planta,
+      nivel: aNuloSiVacio(values.nivel),
+      planta: aNuloSiVacio(values.planta),
       nroExpediente: aNuloSiVacio(values.nroExpediente),
-      tipo: values.tipo,
+      tipo: aNuloSiVacio(values.tipo),
     })
   }
 

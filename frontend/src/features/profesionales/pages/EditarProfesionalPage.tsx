@@ -16,11 +16,11 @@ function aValoresFormulario(detalle: ProfesionalDetalle): ProfesionalFormValues 
     apellido: detalle.apellido,
     nombre: detalle.nombre,
     dni: detalle.dni,
-    cuil: detalle.cuil,
+    cuil: detalle.cuil ?? '',
     fechaNacimiento: detalle.fechaNacimiento,
     sexo: detalle.sexo as ProfesionalFormValues['sexo'],
-    estadoCivil: detalle.estadoCivil as ProfesionalFormValues['estadoCivil'],
-    domicilio: detalle.domicilio,
+    estadoCivil: (detalle.estadoCivil ?? '') as ProfesionalFormValues['estadoCivil'],
+    domicilio: detalle.domicilio ?? '',
     barrio: detalle.barrio ?? '',
     localidad: detalle.localidad,
     provincia: detalle.provincia,
@@ -31,10 +31,10 @@ function aValoresFormulario(detalle: ProfesionalDetalle): ProfesionalFormValues 
     cargo: detalle.cargo,
     areaOperativa: detalle.areaOperativa,
     tipoEfector: detalle.tipoEfector as ProfesionalFormValues['tipoEfector'],
-    nivel: detalle.nivel as ProfesionalFormValues['nivel'],
-    planta: detalle.planta,
+    nivel: (detalle.nivel ?? '') as ProfesionalFormValues['nivel'],
+    planta: detalle.planta ?? '',
     nroExpediente: detalle.nroExpediente ?? '',
-    tipo: detalle.tipo,
+    tipo: detalle.tipo ?? '',
   }
 }
 

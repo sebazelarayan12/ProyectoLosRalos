@@ -54,6 +54,8 @@ public static class ProfesionalMappingExtensions
         Id = p.Id,
         Apellido = p.Apellido,
         Nombre = p.Nombre,
+        Dni = p.Dni,
+        Cuil = p.Cuil,
         Matricula = p.Matricula,
         Cargo = p.Cargo?.Nombre ?? string.Empty,
         NroExpediente = p.NroExpediente,

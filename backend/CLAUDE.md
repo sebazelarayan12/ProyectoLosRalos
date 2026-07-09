@@ -299,7 +299,11 @@ edito la migration original (regla: nunca tocar una migration ya aplicada).
 
 ### Seguridad — ProfesionalResumenResponse
 
-El listado (`GET /profesionales`) usa `ProfesionalResumenResponse` que NO incluye DNI ni CUIL. Solo `ProfesionalDetalleResponse` (GET /{id}) expone datos sensibles, y ese endpoint registra `VerLegajo` en AuditLog.
+Decision revertida (2026-07-09): `ProfesionalResumenResponse` (listado, `GET /profesionales`) SI incluye
+`Dni`/`Cuil` — pedido explicito del usuario para verlos en la pantalla de busqueda. A diferencia de
+`ProfesionalDetalleResponse` (`GET /{id}`), el listado NO registra `VerLegajo` en AuditLog — decision
+consciente de dejarlo sin auditar por ahora. Si se agrega auditoria de listado en el futuro, usar una
+accion distinta a `VerLegajo` (no es "ver un legajo puntual", es "ver un listado con datos sensibles").
 
 ### Rate limiting de login — particionado por IP, no global (Paso 12)
 

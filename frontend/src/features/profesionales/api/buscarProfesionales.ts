@@ -17,10 +17,12 @@ export type ProfesionalResumen = {
   id: string
   apellido: string
   nombre: string
+  dni: string
+  cuil: string | null
   matricula: string | null
   cargo: string
   nroExpediente: string | null
-  tipo: TipoLegajo
+  tipo: TipoLegajo | null
 }
 
 export type PaginatedResponse<T> = {

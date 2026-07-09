@@ -9,11 +9,11 @@ export type ProfesionalRequestPayload = {
   apellido: string
   nombre: string
   dni: string
-  cuil: string
+  cuil: string | null
   fechaNacimiento: string
   sexo: Sexo
-  estadoCivil: EstadoCivil
-  domicilio: string
+  estadoCivil: EstadoCivil | null
+  domicilio: string | null
   barrio: string | null
   localidad: string
   provincia: string
@@ -24,7 +24,7 @@ export type ProfesionalRequestPayload = {
   cargo: string
   areaOperativa: string
   tipoEfector: 'Hospital' | 'CAPS'
-  nivel: Nivel
+  nivel: Nivel | null
   planta: ProfesionalDetalle['planta']
   nroExpediente: string | null
   tipo: ProfesionalDetalle['tipo']

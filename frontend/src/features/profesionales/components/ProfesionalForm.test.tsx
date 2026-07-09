@@ -133,6 +133,40 @@ describe('ProfesionalForm', () => {
     expect(useUnsavedChangesWarning).toHaveBeenLastCalledWith(true)
   })
 
+  test(
+    'modo editar con Cuil, EstadoCivil, Domicilio, Nivel, Planta y Tipo vacios permite guardar sin completarlos',
+    async () => {
+      const onSubmit = vi.fn()
+      const user = userEvent.setup()
+      const valoresConNulls: ProfesionalFormValues = {
+        ...valoresValidos,
+        cuil: '',
+        estadoCivil: '',
+        domicilio: '',
+        nivel: '',
+        planta: '',
+        tipo: '',
+      } as ProfesionalFormValues
+
+      render(
+        <ProfesionalForm modo="editar" valoresIniciales={valoresConNulls} onSubmit={onSubmit} />,
+        { wrapper },
+      )
+
+      await user.click(screen.getByRole('button', { name: /guardar cambios/i }))
+
+      expect(onSubmit).toHaveBeenCalledTimes(1)
+      const payload = onSubmit.mock.calls[0][0] as ProfesionalRequestPayload
+      expect(payload.cuil).toBeNull()
+      expect(payload.estadoCivil).toBeNull()
+      expect(payload.domicilio).toBeNull()
+      expect(payload.nivel).toBeNull()
+      expect(payload.planta).toBeNull()
+      expect(payload.tipo).toBeNull()
+    },
+    15000,
+  )
+
   test('modo editar precarga valores iniciales y dice Guardar cambios', () => {
     render(
       <ProfesionalForm

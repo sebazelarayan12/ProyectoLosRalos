@@ -15,11 +15,11 @@ export type ProfesionalDetalle = {
   apellido: string
   nombre: string
   dni: string
-  cuil: string
+  cuil: string | null
   fechaNacimiento: string
   sexo: string
-  estadoCivil: string
-  domicilio: string
+  estadoCivil: string | null
+  domicilio: string | null
   barrio: string | null
   localidad: string
   provincia: string
@@ -30,10 +30,10 @@ export type ProfesionalDetalle = {
   cargo: string
   areaOperativa: string
   tipoEfector: string
-  nivel: string
-  planta: Planta
+  nivel: string | null
+  planta: Planta | null
   nroExpediente: string | null
-  tipo: TipoLegajo
+  tipo: TipoLegajo | null
   activo: boolean
   fechaCreacion: string
   fechaActualizacion: string

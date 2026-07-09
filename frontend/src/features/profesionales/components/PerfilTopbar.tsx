@@ -152,7 +152,7 @@ type PerfilTopbarProps = {
   nroExpediente: string | null
   puedeEscribir: boolean
   onEditar: () => void
-  tipo?: string
+  tipo?: string | null
   activo?: boolean
 }
 
