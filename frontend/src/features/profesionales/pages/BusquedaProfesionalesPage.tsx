@@ -89,7 +89,7 @@ export function BusquedaProfesionalesPage() {
             ) : null}
           </div>
         </Field>
-        <div className="flex items-end gap-2">
+        <div className="flex flex-wrap items-end gap-2">
           <FiltrosProfesionales filtros={filtros} onFiltrosChange={handleFiltrosChange} />
           <OrdenarProfesionales ordenarPor={ordenarPor} onOrdenarPorChange={handleOrdenarPorChange} />
           {usuario?.rol === 'Admin' || usuario?.rol === 'Administrativo' ? (
