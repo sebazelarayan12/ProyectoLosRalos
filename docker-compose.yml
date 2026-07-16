@@ -44,6 +44,8 @@ services:
         condition: service_healthy
     ports:
       - "8080:80"
+    environment:
+      - API_INTERNAL_HOST=api
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:80/ || exit 1"]
       interval: 10s
