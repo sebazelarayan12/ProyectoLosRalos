@@ -14,6 +14,14 @@ En caso de contradiccion, el `CLAUDE.md` mas especifico (subcarpeta) gana — ex
 
 ---
 
+## Infraestructura — Dokploy
+
+El deploy vive en Dokploy (VPS Contabo, acceso via Tailscale). Hay MCP oficial configurado (`dokploy-mcp`).
+
+**Regla:** cualquier consulta o accion sobre Dokploy (proyectos, environments, servicios, deploys, variables de entorno, dominios, logs) SIEMPRE usa el MCP `dokploy-mcp` — nunca asumir estado ni sugerir pasos manuales en el panel sin antes consultar el MCP.
+
+---
+
 ## Skills — uso obligatorio
 
 Si la tarea coincide con un skill disponible en `<available_skills>`, invocarlo con la herramienta `Skill` ANTES de generar codigo o respuesta. Esto no es opcional.
