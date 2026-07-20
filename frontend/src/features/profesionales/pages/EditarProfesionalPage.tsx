@@ -1,4 +1,5 @@
 import { useNavigate, useParams, Link } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -41,6 +42,7 @@ function aValoresFormulario(detalle: ProfesionalDetalle): ProfesionalFormValues 
 export function EditarProfesionalPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { data: profesional, isLoading, isError } = useProfesionalDetalle(id!)
 
   if (isLoading) {
@@ -58,6 +60,8 @@ export function EditarProfesionalPage() {
   const handleSubmit = async (payload: ProfesionalRequestPayload) => {
     try {
       await editarProfesional(api, id!, payload)
+      queryClient.invalidateQueries({ queryKey: ['profesional', id] })
+      queryClient.invalidateQueries({ queryKey: ['profesionales'] })
       toast.success('Cambios guardados correctamente')
       navigate(`/profesionales/${id}`)
     } catch (error) {
