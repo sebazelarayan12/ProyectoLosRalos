@@ -1,0 +1,35 @@
+name: Backup Postgres prod (Dokploy)
+
+on:
+  schedule:
+    - cron: "0 2 * * 0" # domingos 2AM UTC
+  workflow_dispatch: {}
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.10.0
+        with:
+          ssh-private-key: ${{ secrets.DOKPLOY_VPS_SSH_KEY }}
+
+      - name: Dump Postgres via SSH + docker exec
+        env:
+          VPS_HOST: ${{ secrets.DOKPLOY_VPS_HOST }}
+          VPS_USER: ${{ secrets.DOKPLOY_VPS_USER }}
+          DB_PASSWORD: ${{ secrets.DOKPLOY_DB_PASSWORD_PROD }}
+        run: |
+          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+          echo "TIMESTAMP=$TIMESTAMP" >> "$GITHUB_ENV"
+          ssh -o StrictHostKeyChecking=no "$VPS_USER@$VPS_HOST" \
+            "CONTAINER=\$(docker ps --filter name=los-ralos-db-prod-hqzbcb --format '{{.ID}}' | head -n1); \
+             docker exec -e PGPASSWORD='$DB_PASSWORD' \"\$CONTAINER\" pg_dump -U losralosadmin -d losralos -Fc" \
+            > "backup_prod_${TIMESTAMP}.dump"
+
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: backup-postgres-prod-${{ env.TIMESTAMP }}
+          path: backup_prod_${{ env.TIMESTAMP }}.dump
+          retention-days: 90
