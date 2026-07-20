@@ -484,6 +484,21 @@ public class ProfesionalesControllerTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Update_AreaOperativaSinCambios_Retorna200()
+    {
+        var created = await _adminClient.PostAsJsonAsync("/api/v1/profesionales",
+            BuildRequest(apellido: "Diaz", dni: "77.777.777", cuil: "20-77777777-0"));
+        var original = await created.Content.ReadFromJsonAsync<ProfesionalDetalleResponse>();
+
+        var patch = new PatchProfesionalRequest { AreaOperativa = "Los Ralos", NroExpediente = "1868/616-D-2017" };
+        var resp = await _adminClient.PatchAsJsonAsync($"/api/v1/profesionales/{original!.Id}", patch);
+
+        resp.StatusCode.Should().Be(HttpStatusCode.OK);
+        var updated = await resp.Content.ReadFromJsonAsync<ProfesionalDetalleResponse>();
+        updated!.NroExpediente.Should().Be("1868/616-D-2017");
+    }
+
+    [Fact]
     public async Task Update_AdministrativoToken_Retorna200()
     {
         var created = await _adminClient.PostAsJsonAsync("/api/v1/profesionales",
