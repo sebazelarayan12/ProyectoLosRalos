@@ -207,7 +207,7 @@ mismo `IPasswordHasher` que usa el resto del sistema.
 ## Infraestructura
 
 - Docker compose: servicios `api`, `frontend`, `db`, volumen `storage` para archivos
-- Archivos almacenados en volumen Docker montado en `/api/uploads`
+- Archivos almacenados en volumen Docker montado en `/app/uploads` (BasePath en appsettings.json), volumen `los-ralos-api-prod-lbxh3s-uploads` en prod. Backup semanal via cron en VPS (tar), ver detalle en memoria `infra/backup-dokploy`
 - Migrations automáticas en startup (`context.Database.Migrate()`)
 - Configuración via variables de entorno
 
