@@ -143,11 +143,19 @@ public static class ProfesionalMappingExtensions
         if (req.Matricula is not null && Mayusculas(req.Matricula) != p.Matricula)
         { p.Matricula = Mayusculas(req.Matricula); changed.Add(nameof(Profesional.Matricula)); }
 
-        if (cargo is not null && cargo.Id != p.CargoId)
-        { p.Cargo = cargo; p.CargoId = cargo.Id; changed.Add(nameof(Profesional.Cargo)); }
+        if (cargo is not null)
+        {
+            if (cargo.Id != p.CargoId) changed.Add(nameof(Profesional.Cargo));
+            p.Cargo = cargo;
+            p.CargoId = cargo.Id;
+        }
 
-        if (areaOperativa is not null && areaOperativa.Id != p.AreaOperativaId)
-        { p.AreaOperativa = areaOperativa; p.AreaOperativaId = areaOperativa.Id; changed.Add(nameof(Profesional.AreaOperativa)); }
+        if (areaOperativa is not null)
+        {
+            if (areaOperativa.Id != p.AreaOperativaId) changed.Add(nameof(Profesional.AreaOperativa));
+            p.AreaOperativa = areaOperativa;
+            p.AreaOperativaId = areaOperativa.Id;
+        }
 
         if (req.TipoEfector.HasValue && req.TipoEfector.Value != p.TipoEfector)
         { p.TipoEfector = req.TipoEfector.Value; changed.Add(nameof(Profesional.TipoEfector)); }
