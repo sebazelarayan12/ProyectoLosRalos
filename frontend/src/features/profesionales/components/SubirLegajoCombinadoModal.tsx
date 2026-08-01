@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
-import { FileStack } from 'lucide-react'
+import { FileStack, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -37,6 +37,7 @@ export function SubirLegajoCombinadoModal({
   const [seleccionadas, setSeleccionadas] = useState<number[]>([])
   const [descartadas, setDescartadas] = useState<number[]>([])
   const [segmentos, setSegmentos] = useState<Segmento[]>([])
+  const [cargandoArchivo, setCargandoArchivo] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const paginasAsignadas = useMemo(
@@ -85,6 +86,7 @@ export function SubirLegajoCombinadoModal({
     setSeleccionadas([])
     setDescartadas([])
     setSegmentos([])
+    setCargandoArchivo(false)
     if (inputRef.current) inputRef.current.value = ''
   }
 
@@ -93,12 +95,23 @@ export function SubirLegajoCombinadoModal({
     setSeleccionadas([])
     setDescartadas([])
     setSegmentos([])
-    const documento = await cargarPdf(file)
-    setTotalPaginas(documento.numPages)
-    const renders = await Promise.all(
-      rango(1, documento.numPages).map((pagina) => renderizarMiniatura(documento, pagina)),
-    )
-    setMiniaturas(renders)
+    setTotalPaginas(0)
+    setMiniaturas([])
+    setCargandoArchivo(true)
+    try {
+      const documento = await cargarPdf(file)
+      const renders = await Promise.all(
+        rango(1, documento.numPages).map((pagina) => renderizarMiniatura(documento, pagina)),
+      )
+      setTotalPaginas(documento.numPages)
+      setMiniaturas(renders)
+    } catch {
+      toast.error('No se pudo leer el PDF — verifica que el archivo no este danado')
+      if (inputRef.current) inputRef.current.value = ''
+      setArchivo(null)
+    } finally {
+      setCargandoArchivo(false)
+    }
   }
 
   function toggleSeleccionada(pagina: number) {
@@ -143,7 +156,10 @@ export function SubirLegajoCombinadoModal({
     <Dialog
       open={open}
       onOpenChange={(next) => {
-        if (!next) resetear()
+        if (!next) {
+          if (cargandoArchivo || mutation.isPending) return
+          resetear()
+        }
         onOpenChange(next)
       }}
     >
@@ -160,11 +176,18 @@ export function SubirLegajoCombinadoModal({
             type="file"
             accept="application/pdf"
             aria-label="Seleccionar PDF combinado"
+            disabled={cargandoArchivo || mutation.isPending}
             onChange={(e) => {
               const file = e.target.files?.[0]
               if (file) void handleArchivo(file)
             }}
           />
+          {cargandoArchivo && (
+            <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Loader2 className="size-3.5 animate-spin" />
+              Procesando PDF y generando miniaturas...
+            </p>
+          )}
         </Field>
 
         {totalPaginas > 0 && (
@@ -187,6 +210,7 @@ export function SubirLegajoCombinadoModal({
                           type="button"
                           variant="ghost"
                           size="sm"
+                          disabled={mutation.isPending}
                           aria-label={`Recuperar pagina ${pagina}`}
                           onClick={() => recuperarPagina(pagina)}
                         >
@@ -200,7 +224,7 @@ export function SubirLegajoCombinadoModal({
                             type="checkbox"
                             aria-label={`Pagina ${pagina}`}
                             checked={seleccionadasSet.has(pagina)}
-                            disabled={enSegmento}
+                            disabled={enSegmento || mutation.isPending}
                             onChange={() => toggleSeleccionada(pagina)}
                           />
                           Pag. {pagina}
@@ -210,6 +234,7 @@ export function SubirLegajoCombinadoModal({
                             type="button"
                             variant="ghost"
                             size="sm"
+                            disabled={mutation.isPending}
                             aria-label={`Descartar pagina ${pagina}`}
                             onClick={() => descartarPagina(pagina)}
                           >
@@ -223,7 +248,12 @@ export function SubirLegajoCombinadoModal({
               })}
             </div>
 
-            <Button type="button" variant="secondary" disabled={seleccionadas.length === 0} onClick={armarSegmento}>
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={seleccionadas.length === 0 || mutation.isPending}
+              onClick={armarSegmento}
+            >
               Armar segmento con paginas seleccionadas
             </Button>
 
@@ -239,12 +269,14 @@ export function SubirLegajoCombinadoModal({
                       value={segmento.tipoDocumentoNombre}
                       onChange={(nombre) => cambiarTipoSegmento(indice, nombre)}
                       tipos={tipos ?? []}
+                      disabled={mutation.isPending}
                     />
                   </div>
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
+                    disabled={mutation.isPending}
                     aria-label={`Quitar segmento paginas ${segmento.paginaInicio}-${segmento.paginaFin}`}
                     onClick={() => quitarSegmento(indice)}
                   >
@@ -262,8 +294,8 @@ export function SubirLegajoCombinadoModal({
             disabled={!puedeGuardar || mutation.isPending}
             onClick={() => mutation.mutate()}
           >
-            <FileStack />
-            Guardar
+            {mutation.isPending ? <Loader2 className="animate-spin" /> : <FileStack />}
+            {mutation.isPending ? 'Subiendo...' : 'Guardar'}
           </Button>
         </DialogFooter>
       </DialogContent>

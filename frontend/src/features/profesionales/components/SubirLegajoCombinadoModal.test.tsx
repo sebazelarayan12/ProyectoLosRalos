@@ -183,6 +183,83 @@ describe('SubirLegajoCombinadoModal', () => {
     expect(screen.getByRole('checkbox', { name: /pagina 2/i })).toBeEnabled()
   })
 
+  test('muestra indicador de carga mientras se procesan las miniaturas del PDF', async () => {
+    const { cargarPdf } = await import('../lib/pdfMiniaturas')
+    let resolverCarga: (value: { numPages: number }) => void = () => {}
+    vi.mocked(cargarPdf).mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolverCarga = resolve
+      }),
+    )
+    const user = userEvent.setup()
+    const archivo = new File(['contenido'], 'legajo.pdf', { type: 'application/pdf' })
+
+    render(
+      <SubirLegajoCombinadoModal profesionalId="prof-1" open onOpenChange={vi.fn()} onSubido={vi.fn()} />,
+      { wrapper },
+    )
+    await user.upload(screen.getByLabelText(/seleccionar pdf combinado/i), archivo)
+
+    expect(screen.getByText(/procesando pdf/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/seleccionar pdf combinado/i)).toBeDisabled()
+
+    resolverCarga({ numPages: 4 })
+    await screen.findAllByRole('img', { name: /pagina/i })
+
+    expect(screen.queryByText(/procesando pdf/i)).not.toBeInTheDocument()
+    expect(screen.getByLabelText(/seleccionar pdf combinado/i)).toBeEnabled()
+  })
+
+  test('si el PDF no se puede leer, muestra error y limpia la seleccion', async () => {
+    const { cargarPdf } = await import('../lib/pdfMiniaturas')
+    vi.mocked(cargarPdf).mockRejectedValueOnce(new Error('pdf invalido'))
+    const user = userEvent.setup()
+    const archivo = new File(['contenido'], 'legajo.pdf', { type: 'application/pdf' })
+
+    render(
+      <SubirLegajoCombinadoModal profesionalId="prof-1" open onOpenChange={vi.fn()} onSubido={vi.fn()} />,
+      { wrapper },
+    )
+    await user.upload(screen.getByLabelText(/seleccionar pdf combinado/i), archivo)
+
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith('No se pudo leer el PDF — verifica que el archivo no este danado'),
+    )
+    expect(screen.queryByText(/procesando pdf/i)).not.toBeInTheDocument()
+    expect(screen.queryAllByRole('img', { name: /pagina/i })).toHaveLength(0)
+  })
+
+  test('mientras se sube, el boton Guardar muestra estado de carga y los controles se deshabilitan', async () => {
+    let resolverSubida: (value: { data: unknown[] }) => void = () => {}
+    vi.mocked(api.post).mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolverSubida = resolve
+      }),
+    )
+    const user = userEvent.setup()
+    const archivo = new File(['contenido'], 'legajo.pdf', { type: 'application/pdf' })
+
+    render(
+      <SubirLegajoCombinadoModal profesionalId="prof-1" open onOpenChange={vi.fn()} onSubido={vi.fn()} />,
+      { wrapper },
+    )
+    await user.upload(screen.getByLabelText(/seleccionar pdf combinado/i), archivo)
+    await screen.findAllByRole('img', { name: /pagina/i })
+
+    for (const n of [1, 2, 3, 4]) {
+      await user.click(screen.getByRole('checkbox', { name: new RegExp(`pagina ${n}`, 'i') }))
+    }
+    await user.click(screen.getByRole('button', { name: /armar segmento/i }))
+    await elegirTipo(user, 0, 'Titulo')
+    await user.click(screen.getByRole('button', { name: /guardar/i }))
+
+    expect(screen.getByRole('button', { name: /subiendo/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /quitar segmento/i })).toBeDisabled()
+
+    resolverSubida({ data: [{ id: 'doc-1' }] })
+    await waitFor(() => expect(screen.queryByRole('button', { name: /subiendo/i })).not.toBeInTheDocument())
+  })
+
   test('recuperar una pagina descartada la vuelve seleccionable', async () => {
     const user = userEvent.setup()
     const archivo = new File(['contenido'], 'legajo.pdf', { type: 'application/pdf' })
