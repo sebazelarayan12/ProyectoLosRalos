@@ -4,4 +4,5 @@ public class StorageSettings
 {
     public string BasePath { get; set; } = string.Empty;
     public long MaxFileSizeBytes { get; set; } = 10 * 1024 * 1024;
+    public long MaxLoteFileSizeBytes { get; set; } = 30 * 1024 * 1024;
 }
