@@ -3,7 +3,9 @@ using LosRalos.Application.Entities;
 using LosRalos.Application.Entities.Enums;
 using LosRalos.Application.Exceptions;
 using LosRalos.Application.Interfaces;
+using LosRalos.Application.Settings;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace LosRalos.Application.Services;
 
@@ -13,6 +15,8 @@ public class DocumentoService(
     IProfesionalRepository profesionalRepo,
     IFileStorageService storage,
     IAuditLogRepository auditRepo,
+    IPdfSplitterService pdfSplitter,
+    IOptions<StorageSettings> storageSettings,
     ILogger<DocumentoService> logger) : IDocumentoService
 {
     public async Task<DocumentoResponse> SubirAsync(
@@ -22,11 +26,69 @@ public class DocumentoService(
         _ = await profesionalRepo.GetByIdAsync(profesionalId, ct).ConfigureAwait(false)
             ?? throw new NotFoundException("Profesional no encontrado");
 
+        var documento = await GuardarInternoAsync(
+            profesionalId, archivo, nombreOriginal, tipoDocumentoNombre, usuarioId, nombreUsuario, ip, ct)
+            .ConfigureAwait(false);
+
+        return documento.ToResponse();
+    }
+
+    public async Task<List<DocumentoResponse>> SubirLoteAsync(
+        Guid profesionalId, Stream archivo, string nombreOriginal, List<SegmentoDocumentoRequest> segmentos,
+        Guid usuarioId, string nombreUsuario, string? ip, CancellationToken ct)
+    {
+        _ = await profesionalRepo.GetByIdAsync(profesionalId, ct).ConfigureAwait(false)
+            ?? throw new NotFoundException("Profesional no encontrado");
+
+        if (segmentos.Count == 0)
+            throw new AppValidationException("segmentos", "Debe definir al menos un segmento");
+
+        using var buffer = new MemoryStream();
+        await archivo.CopyToAsync(buffer, ct).ConfigureAwait(false);
+        if (buffer.Length > storageSettings.Value.MaxLoteFileSizeBytes)
+            throw new AppValidationException("archivo", "El archivo combinado supera el tamanio maximo permitido.");
+        buffer.Position = 0;
+
+        var totalPaginas = pdfSplitter.ContarPaginas(buffer);
+        var ordenados = segmentos.OrderBy(s => s.PaginaInicio).ToList();
+
+        for (var i = 0; i < ordenados.Count; i++)
+        {
+            var segmento = ordenados[i];
+            if (segmento.PaginaInicio < 1 || segmento.PaginaFin < segmento.PaginaInicio || segmento.PaginaFin > totalPaginas)
+                throw new AppValidationException(
+                    "segmentos", $"Rango de paginas invalido: {segmento.PaginaInicio}-{segmento.PaginaFin}");
+
+            if (i > 0 && segmento.PaginaInicio <= ordenados[i - 1].PaginaFin)
+                throw new AppValidationException("segmentos", "Los rangos de paginas no pueden superponerse");
+        }
+
+        var resultado = new List<DocumentoResponse>();
+        var nombreBase = Path.GetFileNameWithoutExtension(nombreOriginal);
+
+        foreach (var segmento in ordenados)
+        {
+            using var segmentoStream = pdfSplitter.ExtraerRango(buffer, segmento.PaginaInicio, segmento.PaginaFin);
+            var nombreSegmento = $"{nombreBase}_p{segmento.PaginaInicio}-{segmento.PaginaFin}.pdf";
+
+            var documento = await GuardarInternoAsync(
+                profesionalId, segmentoStream, nombreSegmento, segmento.TipoDocumentoNombre,
+                usuarioId, nombreUsuario, ip, ct).ConfigureAwait(false);
+
+            resultado.Add(documento.ToResponse());
+        }
+
+        return resultado;
+    }
+
+    private async Task<Documento> GuardarInternoAsync(
+        Guid profesionalId, Stream archivo, string nombreOriginal, string tipoDocumentoNombre,
+        Guid usuarioId, string nombreUsuario, string? ip, CancellationToken ct)
+    {
         if (string.IsNullOrWhiteSpace(tipoDocumentoNombre))
             throw new AppValidationException("tipoDocumentoNombre", "El tipo de documento es requerido");
 
         var tipo = await tipoRepo.GetOrCreateAsync(tipoDocumentoNombre, ct).ConfigureAwait(false);
-
         var guardado = await storage.GuardarAsync(profesionalId, archivo, nombreOriginal, ct).ConfigureAwait(false);
 
         var documento = new Documento
@@ -60,7 +122,7 @@ public class DocumentoService(
         logger.LogInformation("Documento {DocumentoId} subido para profesional {ProfesionalId} por {UsuarioId}",
             documento.Id, profesionalId, usuarioId);
 
-        return documento.ToResponse();
+        return documento;
     }
 
     public async Task<ArchivoDescarga> ObtenerArchivoAsync(

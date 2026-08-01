@@ -151,6 +151,7 @@ builder.Services.AddScoped<IDocumentoRepository, DocumentoRepository>();
 builder.Services.AddScoped<ITipoDocumentoRepository, TipoDocumentoRepository>();
 builder.Services.AddScoped<IDocumentoService, DocumentoService>();
 builder.Services.AddSingleton<IFileStorageService, FileStorageService>();
+builder.Services.AddSingleton<IPdfSplitterService, PdfSplitterService>();
 
 // Controllers + Swagger
 builder.Services.AddControllers()
