@@ -188,7 +188,7 @@ describe('SubirLegajoCombinadoModal', () => {
     let resolverCarga: (value: { numPages: number }) => void = () => {}
     vi.mocked(cargarPdf).mockReturnValueOnce(
       new Promise((resolve) => {
-        resolverCarga = resolve
+        resolverCarga = resolve as (value: { numPages: number }) => void
       }),
     )
     const user = userEvent.setup()
