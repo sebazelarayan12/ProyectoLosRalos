@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
+import { FileStack } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Button } from '@/components/ui/button'
 import { useAuth } from '@/features/auth/context/AuthContext'
 import { useProfesionalDetalle } from '../hooks/useProfesionalDetalle'
 import { PerfilTopbar } from '../components/PerfilTopbar'
@@ -9,6 +11,7 @@ import { DatosProfesional } from '../components/DatosProfesional'
 import { GridDocumentos } from '../components/GridDocumentos'
 import { VisorDocumentoModal } from '../components/VisorDocumentoModal'
 import { SubirDocumentoDropzone } from '../components/SubirDocumentoDropzone'
+import { SubirLegajoCombinadoModal } from '../components/SubirLegajoCombinadoModal'
 import type { DocumentoResumen } from '../api/obtenerProfesional'
 
 export function PerfilProfesionalPage() {
@@ -18,6 +21,7 @@ export function PerfilProfesionalPage() {
   const { usuario } = useAuth()
   const { data: profesional, isLoading, isError, error } = useProfesionalDetalle(id!)
   const [documentoVisor, setDocumentoVisor] = useState<DocumentoResumen | null>(null)
+  const [modalLegajoAbierto, setModalLegajoAbierto] = useState(false)
   const puedeEscribir = usuario?.rol === 'Admin' || usuario?.rol === 'Administrativo'
   const invalidarProfesional = () => queryClient.invalidateQueries({ queryKey: ['profesional', id] })
 
@@ -55,7 +59,13 @@ export function PerfilProfesionalPage() {
         <DatosProfesional profesional={profesional} />
         <div className="flex flex-col gap-4">
           {puedeEscribir ? (
-            <SubirDocumentoDropzone profesionalId={id!} onSubido={invalidarProfesional} />
+            <>
+              <SubirDocumentoDropzone profesionalId={id!} onSubido={invalidarProfesional} />
+              <Button type="button" variant="outline" onClick={() => setModalLegajoAbierto(true)}>
+                <FileStack />
+                Subir legajo combinado (PDF)
+              </Button>
+            </>
           ) : null}
           <GridDocumentos documentos={profesional.documentos} onVerDocumento={setDocumentoVisor} />
         </div>
@@ -69,6 +79,13 @@ export function PerfilProfesionalPage() {
         }}
         puedeEscribir={puedeEscribir}
         onEliminado={invalidarProfesional}
+      />
+
+      <SubirLegajoCombinadoModal
+        profesionalId={id!}
+        open={modalLegajoAbierto}
+        onOpenChange={setModalLegajoAbierto}
+        onSubido={invalidarProfesional}
       />
     </div>
   )

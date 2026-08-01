@@ -43,6 +43,8 @@ export function SubirLegajoCombinadoModal({
     () => new Set([...descartadas, ...segmentos.flatMap((s) => rango(s.paginaInicio, s.paginaFin))]),
     [descartadas, segmentos],
   )
+  const descartadasSet = useMemo(() => new Set(descartadas), [descartadas])
+  const seleccionadasSet = useMemo(() => new Set(seleccionadas), [seleccionadas])
   const todasDecididas = totalPaginas > 0 && paginasAsignadas.size === totalPaginas
   const segmentosSinTipo = segmentos.some((s) => s.tipoDocumentoNombre.trim() === '')
   const puedeGuardar = todasDecididas && segmentos.length > 0 && !segmentosSinTipo
@@ -148,7 +150,7 @@ export function SubirLegajoCombinadoModal({
           <div className="flex flex-col gap-3.5">
             <div className="grid grid-cols-4 gap-2">
               {rango(1, totalPaginas).map((pagina) => {
-                const descartada = descartadas.includes(pagina)
+                const descartada = descartadasSet.has(pagina)
                 const enSegmento = segmentos.some((s) => pagina >= s.paginaInicio && pagina <= s.paginaFin)
                 return (
                   <div key={pagina} className="flex flex-col items-center gap-1 rounded-lg border p-2">
@@ -161,7 +163,7 @@ export function SubirLegajoCombinadoModal({
                       <input
                         type="checkbox"
                         aria-label={`Pagina ${pagina}`}
-                        checked={seleccionadas.includes(pagina)}
+                        checked={seleccionadasSet.has(pagina)}
                         disabled={descartada || enSegmento}
                         onChange={() => toggleSeleccionada(pagina)}
                       />

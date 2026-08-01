@@ -173,6 +173,16 @@ se maneja con una pila en el estado del componente (`historial: (string | undefi
 en los handlers de cambio de apellido/filtros (no en `useEffect` — sigue el patron
 `rerender-move-effect-to-event` de vercel-react-best-practices).
 
+## React doctor — advertencias aceptadas (Paso 11 — subida legajo combinado)
+
+- `SubirLegajoCombinadoModal.tsx` — "Many related useState calls": react-doctor sugiere usar
+  `useReducer` para consolidar los 6 useState relacionados (archivo, totalPaginas, miniaturas,
+  seleccionadas, descartadas, segmentos). La sugerencia es valida desde el punto de vista de
+  mantenibilidad (el estado se reseteaba junto en resetear()), pero la implementacion actual es
+  clara y funcional. Convertir a useReducer seria un refactoring no trivial con riesgo de
+  introducir bugs. Dejar como esta por ahora; es candidato para refactoring futuro si el
+  componente crece en complejidad.
+
 ## Invalidar tambien el listado cuando una mutacion cambia campos filtrados por el backend (Paso 12)
 
 Si un endpoint de busqueda filtra por un campo (ej: `ProfesionalRepository.SearchAsync` hace
