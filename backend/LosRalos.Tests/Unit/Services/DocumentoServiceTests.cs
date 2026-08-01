@@ -207,6 +207,10 @@ public class DocumentoServiceTests
 
     // --- SubirLoteAsync ---
 
+    // Bytes con la firma real de un PDF (%PDF) — SubirLoteAsync valida magic bytes
+    // antes de pasarle el buffer a la libreria de split.
+    private static MemoryStream PdfFalso() => new([0x25, 0x50, 0x44, 0x46, 0x2D, 0x31, 0x2E, 0x34]);
+
     [Fact]
     public async Task SubirLoteAsync_ProfesionalNoExiste_LanzaNotFoundException()
     {
@@ -241,7 +245,7 @@ public class DocumentoServiceTests
         var segmentos = new List<SegmentoDocumentoRequest> { new() { PaginaInicio = 2, PaginaFin = 5, TipoDocumentoNombre = "Titulo" } };
 
         var act = () => CrearServicio().SubirLoteAsync(
-            profesionalId, new MemoryStream([1, 2, 3]), "legajo.pdf", segmentos, UsuarioId, NombreUsuario, null, CancellationToken.None);
+            profesionalId, PdfFalso(), "legajo.pdf", segmentos, UsuarioId, NombreUsuario, null, CancellationToken.None);
 
         await act.Should().ThrowAsync<AppValidationException>();
     }
@@ -259,7 +263,7 @@ public class DocumentoServiceTests
         };
 
         var act = () => CrearServicio().SubirLoteAsync(
-            profesionalId, new MemoryStream([1, 2, 3]), "legajo.pdf", segmentos, UsuarioId, NombreUsuario, null, CancellationToken.None);
+            profesionalId, PdfFalso(), "legajo.pdf", segmentos, UsuarioId, NombreUsuario, null, CancellationToken.None);
 
         await act.Should().ThrowAsync<AppValidationException>();
     }
@@ -287,12 +291,57 @@ public class DocumentoServiceTests
         };
 
         var resultado = await CrearServicio().SubirLoteAsync(
-            profesionalId, new MemoryStream([1, 2, 3, 4]), "legajo.pdf", segmentos, UsuarioId, NombreUsuario, "1.2.3.4", CancellationToken.None);
+            profesionalId, PdfFalso(), "legajo.pdf", segmentos, UsuarioId, NombreUsuario, "1.2.3.4", CancellationToken.None);
 
         resultado.Should().HaveCount(2);
         await _documentoRepo.Received(2).AddAsync(Arg.Any<Documento>(), Arg.Any<CancellationToken>());
         await _auditRepo.Received(2).AddAsync(
             Arg.Is<AuditLog>(a => a.Accion == AccionAudit.SubirDocumento && a.ProfesionalId == profesionalId),
             Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SubirLoteAsync_ArchivoNoEsPdf_LanzaAppValidationExceptionSinTocarElSplitter()
+    {
+        var profesionalId = Guid.NewGuid();
+        _profesionalRepo.GetByIdAsync(profesionalId, Arg.Any<CancellationToken>()).Returns(ProfesionalActivo(profesionalId));
+        var segmentos = new List<SegmentoDocumentoRequest> { new() { PaginaInicio = 1, PaginaFin = 1, TipoDocumentoNombre = "Titulo" } };
+
+        // Un archivo renombrado a .pdf que en realidad no lo es (aca, bytes arbitrarios).
+        var act = () => CrearServicio().SubirLoteAsync(
+            profesionalId, new MemoryStream([0x50, 0x4B, 0x03, 0x04, 0x00]), "legajo.pdf", segmentos,
+            UsuarioId, NombreUsuario, null, CancellationToken.None);
+
+        await act.Should().ThrowAsync<AppValidationException>();
+        _pdfSplitter.DidNotReceive().ContarPaginas(Arg.Any<Stream>());
+    }
+
+    [Fact]
+    public async Task SubirLoteAsync_ContarPaginasLanzaExcepcionDeLaLibreria_LanzaAppValidationException()
+    {
+        var profesionalId = Guid.NewGuid();
+        _profesionalRepo.GetByIdAsync(profesionalId, Arg.Any<CancellationToken>()).Returns(ProfesionalActivo(profesionalId));
+        _pdfSplitter.ContarPaginas(Arg.Any<Stream>()).Returns(_ => throw new InvalidOperationException("pdf corrupto"));
+        var segmentos = new List<SegmentoDocumentoRequest> { new() { PaginaInicio = 1, PaginaFin = 1, TipoDocumentoNombre = "Titulo" } };
+
+        var act = () => CrearServicio().SubirLoteAsync(
+            profesionalId, PdfFalso(), "legajo.pdf", segmentos, UsuarioId, NombreUsuario, null, CancellationToken.None);
+
+        await act.Should().ThrowAsync<AppValidationException>();
+    }
+
+    [Fact]
+    public async Task SubirLoteAsync_ExtraerRangoLanzaExcepcionDeLaLibreria_LanzaAppValidationException()
+    {
+        var profesionalId = Guid.NewGuid();
+        _profesionalRepo.GetByIdAsync(profesionalId, Arg.Any<CancellationToken>()).Returns(ProfesionalActivo(profesionalId));
+        _pdfSplitter.ContarPaginas(Arg.Any<Stream>()).Returns(2);
+        _pdfSplitter.ExtraerRango(Arg.Any<Stream>(), 1, 2).Returns(_ => throw new InvalidOperationException("pdf protegido"));
+        var segmentos = new List<SegmentoDocumentoRequest> { new() { PaginaInicio = 1, PaginaFin = 2, TipoDocumentoNombre = "Titulo" } };
+
+        var act = () => CrearServicio().SubirLoteAsync(
+            profesionalId, PdfFalso(), "legajo.pdf", segmentos, UsuarioId, NombreUsuario, null, CancellationToken.None);
+
+        await act.Should().ThrowAsync<AppValidationException>();
     }
 }

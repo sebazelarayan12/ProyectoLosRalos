@@ -49,7 +49,10 @@ public class DocumentoService(
             throw new AppValidationException("archivo", "El archivo combinado supera el tamanio maximo permitido.");
         buffer.Position = 0;
 
-        var totalPaginas = pdfSplitter.ContarPaginas(buffer);
+        if (!EsPdf(buffer))
+            throw new AppValidationException("archivo", "El archivo no es un PDF valido.");
+
+        var totalPaginas = EjecutarPdf(() => pdfSplitter.ContarPaginas(buffer));
         var ordenados = segmentos.OrderBy(s => s.PaginaInicio).ToList();
 
         for (var i = 0; i < ordenados.Count; i++)
@@ -68,7 +71,8 @@ public class DocumentoService(
 
         foreach (var segmento in ordenados)
         {
-            using var segmentoStream = pdfSplitter.ExtraerRango(buffer, segmento.PaginaInicio, segmento.PaginaFin);
+            using var segmentoStream = EjecutarPdf(
+                () => pdfSplitter.ExtraerRango(buffer, segmento.PaginaInicio, segmento.PaginaFin));
             var nombreSegmento = $"{nombreBase}_p{segmento.PaginaInicio}-{segmento.PaginaFin}.pdf";
 
             var documento = await GuardarInternoAsync(
@@ -79,6 +83,30 @@ public class DocumentoService(
         }
 
         return resultado;
+    }
+
+    private static readonly byte[] MagicBytesPdf = [0x25, 0x50, 0x44, 0x46];
+
+    private static bool EsPdf(MemoryStream buffer)
+    {
+        var bytes = buffer.GetBuffer();
+        return buffer.Length >= MagicBytesPdf.Length &&
+               bytes.AsSpan(0, MagicBytesPdf.Length).SequenceEqual(MagicBytesPdf);
+    }
+
+    // Cualquier fallo de la libreria de PDF (archivo truncado, protegido con contrasenia,
+    // estructura corrupta) es un error de input del usuario, no un error del servidor.
+    private static T EjecutarPdf<T>(Func<T> operacion)
+    {
+        try
+        {
+            return operacion();
+        }
+        catch (Exception ex) when (ex is not AppValidationException and not OperationCanceledException)
+        {
+            throw new AppValidationException(
+                "archivo", "El PDF no se pudo procesar; puede estar danado o protegido con contrasenia.");
+        }
     }
 
     private async Task<Documento> GuardarInternoAsync(
