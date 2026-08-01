@@ -163,130 +163,132 @@ export function SubirLegajoCombinadoModal({
         onOpenChange(next)
       }}
     >
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="flex max-h-[85vh] flex-col sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Subir legajo combinado (PDF)</DialogTitle>
         </DialogHeader>
 
-        <Field>
-          <FieldLabel htmlFor="pdf-combinado">Seleccionar PDF combinado</FieldLabel>
-          <input
-            ref={inputRef}
-            id="pdf-combinado"
-            type="file"
-            accept="application/pdf"
-            aria-label="Seleccionar PDF combinado"
-            disabled={cargandoArchivo || mutation.isPending}
-            onChange={(e) => {
-              const file = e.target.files?.[0]
-              if (file) void handleArchivo(file)
-            }}
-          />
-          {cargandoArchivo && (
-            <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Loader2 className="size-3.5 animate-spin" />
-              Procesando PDF y generando miniaturas...
-            </p>
-          )}
-        </Field>
+        <div className="flex flex-1 flex-col gap-3.5 overflow-y-auto">
+          <Field>
+            <FieldLabel htmlFor="pdf-combinado">Seleccionar PDF combinado</FieldLabel>
+            <input
+              ref={inputRef}
+              id="pdf-combinado"
+              type="file"
+              accept="application/pdf"
+              aria-label="Seleccionar PDF combinado"
+              disabled={cargandoArchivo || mutation.isPending}
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                if (file) void handleArchivo(file)
+              }}
+            />
+            {cargandoArchivo && (
+              <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Loader2 className="size-3.5 animate-spin" />
+                Procesando PDF y generando miniaturas...
+              </p>
+            )}
+          </Field>
 
-        {totalPaginas > 0 && (
-          <div className="flex flex-col gap-3.5">
-            <div className="grid grid-cols-4 gap-2">
-              {rango(1, totalPaginas).map((pagina) => {
-                const descartada = descartadasSet.has(pagina)
-                const enSegmento = segmentos.some((s) => pagina >= s.paginaInicio && pagina <= s.paginaFin)
-                return (
-                  <div key={pagina} className="flex flex-col items-center gap-1 rounded-lg border p-2">
-                    <img
-                      src={miniaturas[pagina - 1]}
-                      alt={`Pagina ${pagina}`}
-                      className="h-20 w-full object-contain"
-                    />
-                    {descartada ? (
-                      <>
-                        <span className="text-muted-foreground text-xs">Pag. {pagina} (descartada)</span>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          disabled={mutation.isPending}
-                          aria-label={`Recuperar pagina ${pagina}`}
-                          onClick={() => recuperarPagina(pagina)}
-                        >
-                          Recuperar
-                        </Button>
-                      </>
-                    ) : (
-                      <>
-                        <label className="flex items-center gap-1 text-xs">
-                          <input
-                            type="checkbox"
-                            aria-label={`Pagina ${pagina}`}
-                            checked={seleccionadasSet.has(pagina)}
-                            disabled={enSegmento || mutation.isPending}
-                            onChange={() => toggleSeleccionada(pagina)}
-                          />
-                          Pag. {pagina}
-                        </label>
-                        {!enSegmento && (
+          {totalPaginas > 0 && (
+            <div className="flex flex-col gap-3.5">
+              <div className="grid grid-cols-4 gap-2">
+                {rango(1, totalPaginas).map((pagina) => {
+                  const descartada = descartadasSet.has(pagina)
+                  const enSegmento = segmentos.some((s) => pagina >= s.paginaInicio && pagina <= s.paginaFin)
+                  return (
+                    <div key={pagina} className="flex flex-col items-center gap-1 rounded-lg border p-2">
+                      <img
+                        src={miniaturas[pagina - 1]}
+                        alt={`Pagina ${pagina}`}
+                        className="h-20 w-full object-contain"
+                      />
+                      {descartada ? (
+                        <>
+                          <span className="text-muted-foreground text-xs">Pag. {pagina} (descartada)</span>
                           <Button
                             type="button"
                             variant="ghost"
                             size="sm"
                             disabled={mutation.isPending}
-                            aria-label={`Descartar pagina ${pagina}`}
-                            onClick={() => descartarPagina(pagina)}
+                            aria-label={`Recuperar pagina ${pagina}`}
+                            onClick={() => recuperarPagina(pagina)}
                           >
-                            Descartar
+                            Recuperar
                           </Button>
-                        )}
-                      </>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
+                        </>
+                      ) : (
+                        <>
+                          <label className="flex items-center gap-1 text-xs">
+                            <input
+                              type="checkbox"
+                              aria-label={`Pagina ${pagina}`}
+                              checked={seleccionadasSet.has(pagina)}
+                              disabled={enSegmento || mutation.isPending}
+                              onChange={() => toggleSeleccionada(pagina)}
+                            />
+                            Pag. {pagina}
+                          </label>
+                          {!enSegmento && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              disabled={mutation.isPending}
+                              aria-label={`Descartar pagina ${pagina}`}
+                              onClick={() => descartarPagina(pagina)}
+                            >
+                              Descartar
+                            </Button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
 
-            <Button
-              type="button"
-              variant="secondary"
-              disabled={seleccionadas.length === 0 || mutation.isPending}
-              onClick={armarSegmento}
-            >
-              Armar segmento con paginas seleccionadas
-            </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={seleccionadas.length === 0 || mutation.isPending}
+                onClick={armarSegmento}
+              >
+                Armar segmento con paginas seleccionadas
+              </Button>
 
-            {segmentos.map((segmento, indice) => (
-              <Field key={`${segmento.paginaInicio}-${segmento.paginaFin}`}>
-                <FieldLabel htmlFor={`tipo-segmento-${indice}`}>
-                  Paginas {segmento.paginaInicio}-{segmento.paginaFin}
-                </FieldLabel>
-                <div className="flex items-center gap-2">
-                  <div className="flex-1">
-                    <ComboboxTipoDocumento
-                      id={`tipo-segmento-${indice}`}
-                      value={segmento.tipoDocumentoNombre}
-                      onChange={(nombre) => cambiarTipoSegmento(indice, nombre)}
-                      tipos={tipos ?? []}
+              {segmentos.map((segmento, indice) => (
+                <Field key={`${segmento.paginaInicio}-${segmento.paginaFin}`}>
+                  <FieldLabel htmlFor={`tipo-segmento-${indice}`}>
+                    Paginas {segmento.paginaInicio}-{segmento.paginaFin}
+                  </FieldLabel>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1">
+                      <ComboboxTipoDocumento
+                        id={`tipo-segmento-${indice}`}
+                        value={segmento.tipoDocumentoNombre}
+                        onChange={(nombre) => cambiarTipoSegmento(indice, nombre)}
+                        tipos={tipos ?? []}
+                        disabled={mutation.isPending}
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
                       disabled={mutation.isPending}
-                    />
+                      aria-label={`Quitar segmento paginas ${segmento.paginaInicio}-${segmento.paginaFin}`}
+                      onClick={() => quitarSegmento(indice)}
+                    >
+                      Quitar segmento
+                    </Button>
                   </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    disabled={mutation.isPending}
-                    aria-label={`Quitar segmento paginas ${segmento.paginaInicio}-${segmento.paginaFin}`}
-                    onClick={() => quitarSegmento(indice)}
-                  >
-                    Quitar segmento
-                  </Button>
-                </div>
-              </Field>
-            ))}
-          </div>
-        )}
+                </Field>
+              ))}
+            </div>
+          )}
+        </div>
 
         <DialogFooter>
           <Button
