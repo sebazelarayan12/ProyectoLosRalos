@@ -62,13 +62,19 @@ export function SubirLegajoCombinadoModal({
         })),
       ),
     onSuccess: () => {
-      onSubido()
       onOpenChange(false)
       resetear()
       toast.success('Legajo combinado subido correctamente')
     },
     onError: () => {
-      toast.error('No se pudo subir el legajo combinado')
+      toast.error(
+        'No se pudo completar la subida — algunos documentos pueden haberse creado, revisa el legajo antes de reintentar',
+      )
+    },
+    // El backend no es transaccional entre segmentos: si falla a mitad de camino, los
+    // documentos ya creados existen. Se refresca el legajo siempre, no solo en exito.
+    onSettled: () => {
+      onSubido()
     },
   })
 
@@ -106,12 +112,27 @@ export function SubirLegajoCombinadoModal({
     setSeleccionadas((prev) => prev.filter((p) => p !== pagina))
   }
 
+  function recuperarPagina(pagina: number) {
+    setDescartadas((prev) => prev.filter((p) => p !== pagina))
+  }
+
   function armarSegmento() {
     if (seleccionadas.length === 0) return
+    // Un segmento es un rango contiguo: si hay huecos en la seleccion (ej. 1 y 4) el
+    // rango se ensancharia en silencio y se tragaria paginas ajenas al documento.
+    const contigua = seleccionadas.every((pagina, i) => pagina === seleccionadas[0] + i)
+    if (!contigua) {
+      toast.error('Las paginas seleccionadas deben ser consecutivas')
+      return
+    }
     const paginaInicio = seleccionadas[0]
     const paginaFin = seleccionadas[seleccionadas.length - 1]
     setSegmentos((prev) => [...prev, { paginaInicio, paginaFin, tipoDocumentoNombre: '' }])
     setSeleccionadas([])
+  }
+
+  function quitarSegmento(indice: number) {
+    setSegmentos((prev) => prev.filter((_, i) => i !== indice))
   }
 
   function cambiarTipoSegmento(indice: number, tipoDocumentoNombre: string) {
@@ -159,26 +180,43 @@ export function SubirLegajoCombinadoModal({
                       alt={`Pagina ${pagina}`}
                       className="h-20 w-full object-contain"
                     />
-                    <label className="flex items-center gap-1 text-xs">
-                      <input
-                        type="checkbox"
-                        aria-label={`Pagina ${pagina}`}
-                        checked={seleccionadasSet.has(pagina)}
-                        disabled={descartada || enSegmento}
-                        onChange={() => toggleSeleccionada(pagina)}
-                      />
-                      Pag. {pagina}
-                    </label>
-                    {!descartada && !enSegmento && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        aria-label={`Descartar pagina ${pagina}`}
-                        onClick={() => descartarPagina(pagina)}
-                      >
-                        Descartar
-                      </Button>
+                    {descartada ? (
+                      <>
+                        <span className="text-muted-foreground text-xs">Pag. {pagina} (descartada)</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          aria-label={`Recuperar pagina ${pagina}`}
+                          onClick={() => recuperarPagina(pagina)}
+                        >
+                          Recuperar
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <label className="flex items-center gap-1 text-xs">
+                          <input
+                            type="checkbox"
+                            aria-label={`Pagina ${pagina}`}
+                            checked={seleccionadasSet.has(pagina)}
+                            disabled={enSegmento}
+                            onChange={() => toggleSeleccionada(pagina)}
+                          />
+                          Pag. {pagina}
+                        </label>
+                        {!enSegmento && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            aria-label={`Descartar pagina ${pagina}`}
+                            onClick={() => descartarPagina(pagina)}
+                          >
+                            Descartar
+                          </Button>
+                        )}
+                      </>
                     )}
                   </div>
                 )
@@ -194,12 +232,25 @@ export function SubirLegajoCombinadoModal({
                 <FieldLabel htmlFor={`tipo-segmento-${indice}`}>
                   Paginas {segmento.paginaInicio}-{segmento.paginaFin}
                 </FieldLabel>
-                <ComboboxTipoDocumento
-                  id={`tipo-segmento-${indice}`}
-                  value={segmento.tipoDocumentoNombre}
-                  onChange={(nombre) => cambiarTipoSegmento(indice, nombre)}
-                  tipos={tipos ?? []}
-                />
+                <div className="flex items-center gap-2">
+                  <div className="flex-1">
+                    <ComboboxTipoDocumento
+                      id={`tipo-segmento-${indice}`}
+                      value={segmento.tipoDocumentoNombre}
+                      onChange={(nombre) => cambiarTipoSegmento(indice, nombre)}
+                      tipos={tipos ?? []}
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    aria-label={`Quitar segmento paginas ${segmento.paginaInicio}-${segmento.paginaFin}`}
+                    onClick={() => quitarSegmento(indice)}
+                  >
+                    Quitar segmento
+                  </Button>
+                </div>
               </Field>
             ))}
           </div>

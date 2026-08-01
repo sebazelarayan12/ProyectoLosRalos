@@ -11,6 +11,14 @@ vi.mock('@/lib/api', () => ({
   api: { get: vi.fn(), post: vi.fn(), delete: vi.fn() },
 }))
 
+// SubirLegajoCombinadoModal importa pdfjs-dist via ../lib/pdfMiniaturas, que tiene un
+// side effect a nivel de modulo (GlobalWorkerOptions) y usa APIs de canvas (DOMMatrix)
+// que jsdom no implementa. Sin este mock, el archivo de test entero no llega a cargar.
+vi.mock('../lib/pdfMiniaturas', () => ({
+  cargarPdf: vi.fn(),
+  renderizarMiniatura: vi.fn(),
+}))
+
 const profesionalDetalle = {
   id: '11111111-1111-1111-1111-111111111111',
   apellido: 'Perez',

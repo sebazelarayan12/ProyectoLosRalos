@@ -108,13 +108,14 @@ describe('SubirLegajoCombinadoModal', () => {
     )
   })
 
-  test('muestra error si la subida falla', async () => {
+  test('muestra error si la subida falla y refresca el legajo igual (puede haber documentos creados)', async () => {
     vi.mocked(api.post).mockRejectedValue(new Error('fail'))
+    const onSubido = vi.fn()
     const user = userEvent.setup()
     const archivo = new File(['contenido'], 'legajo.pdf', { type: 'application/pdf' })
 
     render(
-      <SubirLegajoCombinadoModal profesionalId="prof-1" open onOpenChange={vi.fn()} onSubido={vi.fn()} />,
+      <SubirLegajoCombinadoModal profesionalId="prof-1" open onOpenChange={vi.fn()} onSubido={onSubido} />,
       { wrapper },
     )
     await user.upload(screen.getByLabelText(/seleccionar pdf combinado/i), archivo)
@@ -127,6 +128,81 @@ describe('SubirLegajoCombinadoModal', () => {
     await elegirTipo(user, 0, 'Titulo')
     await user.click(screen.getByRole('button', { name: /guardar/i }))
 
-    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('No se pudo subir el legajo combinado'))
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith(
+        'No se pudo completar la subida — algunos documentos pueden haberse creado, revisa el legajo antes de reintentar',
+      ),
+    )
+    await waitFor(() => expect(onSubido).toHaveBeenCalled())
+  })
+
+  test('rechaza una seleccion no contigua con un toast y no crea el segmento', async () => {
+    const user = userEvent.setup()
+    const archivo = new File(['contenido'], 'legajo.pdf', { type: 'application/pdf' })
+
+    render(
+      <SubirLegajoCombinadoModal profesionalId="prof-1" open onOpenChange={vi.fn()} onSubido={vi.fn()} />,
+      { wrapper },
+    )
+    await user.upload(screen.getByLabelText(/seleccionar pdf combinado/i), archivo)
+    await screen.findAllByRole('img', { name: /pagina/i })
+
+    await user.click(screen.getByRole('checkbox', { name: /pagina 1/i }))
+    await user.click(screen.getByRole('checkbox', { name: /pagina 4/i }))
+    await user.click(screen.getByRole('button', { name: /armar segmento/i }))
+
+    expect(toast.error).toHaveBeenCalledWith('Las paginas seleccionadas deben ser consecutivas')
+    expect(screen.queryByText(/paginas 1-4/i)).not.toBeInTheDocument()
+    // La seleccion queda intacta para que el usuario la corrija.
+    expect(screen.getByRole('checkbox', { name: /pagina 1/i })).toBeChecked()
+    expect(screen.getByRole('checkbox', { name: /pagina 4/i })).toBeChecked()
+  })
+
+  test('quitar un segmento libera sus paginas', async () => {
+    const user = userEvent.setup()
+    const archivo = new File(['contenido'], 'legajo.pdf', { type: 'application/pdf' })
+
+    render(
+      <SubirLegajoCombinadoModal profesionalId="prof-1" open onOpenChange={vi.fn()} onSubido={vi.fn()} />,
+      { wrapper },
+    )
+    await user.upload(screen.getByLabelText(/seleccionar pdf combinado/i), archivo)
+    await screen.findAllByRole('img', { name: /pagina/i })
+
+    await user.click(screen.getByRole('checkbox', { name: /pagina 1/i }))
+    await user.click(screen.getByRole('checkbox', { name: /pagina 2/i }))
+    await user.click(screen.getByRole('button', { name: /armar segmento/i }))
+
+    expect(screen.getByText(/paginas 1-2/i)).toBeInTheDocument()
+    expect(screen.getByRole('checkbox', { name: /pagina 1/i })).toBeDisabled()
+
+    await user.click(screen.getByRole('button', { name: /quitar segmento paginas 1-2/i }))
+
+    expect(screen.queryByText(/paginas 1-2/i)).not.toBeInTheDocument()
+    expect(screen.getByRole('checkbox', { name: /pagina 1/i })).toBeEnabled()
+    expect(screen.getByRole('checkbox', { name: /pagina 2/i })).toBeEnabled()
+  })
+
+  test('recuperar una pagina descartada la vuelve seleccionable', async () => {
+    const user = userEvent.setup()
+    const archivo = new File(['contenido'], 'legajo.pdf', { type: 'application/pdf' })
+
+    render(
+      <SubirLegajoCombinadoModal profesionalId="prof-1" open onOpenChange={vi.fn()} onSubido={vi.fn()} />,
+      { wrapper },
+    )
+    await user.upload(screen.getByLabelText(/seleccionar pdf combinado/i), archivo)
+    await screen.findAllByRole('img', { name: /pagina/i })
+
+    await user.click(screen.getByRole('button', { name: /descartar pagina 3/i }))
+
+    expect(screen.queryByRole('checkbox', { name: /pagina 3/i })).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /recuperar pagina 3/i }))
+
+    const checkbox = screen.getByRole('checkbox', { name: /pagina 3/i })
+    expect(checkbox).toBeEnabled()
+    await user.click(checkbox)
+    expect(checkbox).toBeChecked()
   })
 })
