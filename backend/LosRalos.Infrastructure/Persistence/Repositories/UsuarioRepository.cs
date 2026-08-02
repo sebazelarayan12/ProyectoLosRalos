@@ -30,9 +30,12 @@ public class UsuarioRepository(AppDbContext db) : IUsuarioRepository
     }
 
     public Task<Usuario?> GetByEmailAsync(string email, CancellationToken ct = default)
-        => db.Usuarios
+    {
+        var emailNormalizado = email.Trim().ToLowerInvariant();
+        return db.Usuarios
             .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Email == email, ct);
+            .FirstOrDefaultAsync(u => u.Email == emailNormalizado, ct);
+    }
 
     public Task<Usuario?> GetByIdAsync(Guid id, CancellationToken ct = default)
         => db.Usuarios

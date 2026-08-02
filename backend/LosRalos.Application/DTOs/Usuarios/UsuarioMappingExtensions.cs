@@ -19,7 +19,7 @@ public static class UsuarioMappingExtensions
     {
         Id = Guid.NewGuid(),
         Nombre = req.Nombre,
-        Email = req.Email,
+        Email = req.Email.Trim().ToLowerInvariant(),
         PasswordHash = passwordHash,
         Rol = req.Rol,
         Activo = true,
@@ -34,8 +34,12 @@ public static class UsuarioMappingExtensions
         if (req.Nombre is not null && req.Nombre != u.Nombre)
         { u.Nombre = req.Nombre; changed.Add(nameof(Usuario.Nombre)); }
 
-        if (req.Email is not null && req.Email != u.Email)
-        { u.Email = req.Email; changed.Add(nameof(Usuario.Email)); }
+        if (req.Email is not null)
+        {
+            var emailNormalizado = req.Email.Trim().ToLowerInvariant();
+            if (emailNormalizado != u.Email)
+            { u.Email = emailNormalizado; changed.Add(nameof(Usuario.Email)); }
+        }
 
         return changed;
     }

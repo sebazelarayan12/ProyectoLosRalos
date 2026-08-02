@@ -98,8 +98,10 @@ describe('LoginForm', () => {
     expect(await screen.findByText('Pantalla busqueda profesionales')).toBeInTheDocument()
   })
 
-  test('credenciales invalidas muestran mensaje de error', async () => {
-    vi.mocked(api.post).mockRejectedValueOnce({ response: { status: 401 } })
+  test('credenciales invalidas muestran mensaje de error del backend', async () => {
+    vi.mocked(api.post).mockRejectedValueOnce({
+      response: { status: 401, data: { type: 'Unauthorized', message: 'Credenciales invalidas' } },
+    })
     const user = userEvent.setup()
     renderForm()
 
@@ -108,5 +110,37 @@ describe('LoginForm', () => {
     await user.click(screen.getByRole('button', { name: /ingresar/i }))
 
     expect(await screen.findByText(/credenciales inv/i)).toBeInTheDocument()
+  })
+
+  test('demasiados intentos muestran el mensaje de rate limit del backend', async () => {
+    vi.mocked(api.post).mockRejectedValueOnce({
+      response: {
+        status: 429,
+        data: {
+          type: 'LoginRateLimitExceeded',
+          message: 'Demasiados intentos fallidos. Espere 15 minutos antes de volver a intentar.',
+        },
+      },
+    })
+    const user = userEvent.setup()
+    renderForm()
+
+    await user.type(screen.getByLabelText(/email/i), 'ana@hospital.gob.ar')
+    await user.type(screen.getByLabelText(/contrasenia|contraseña|password/i), 'malapass')
+    await user.click(screen.getByRole('button', { name: /ingresar/i }))
+
+    expect(await screen.findByText(/demasiados intentos/i)).toBeInTheDocument()
+  })
+
+  test('error de red (sin response) muestra mensaje de servidor no disponible', async () => {
+    vi.mocked(api.post).mockRejectedValueOnce(new Error('Network Error'))
+    const user = userEvent.setup()
+    renderForm()
+
+    await user.type(screen.getByLabelText(/email/i), 'ana@hospital.gob.ar')
+    await user.type(screen.getByLabelText(/contrasenia|contraseña|password/i), 'secreta123')
+    await user.click(screen.getByRole('button', { name: /ingresar/i }))
+
+    expect(await screen.findByText(/no se pudo conectar/i)).toBeInTheDocument()
   })
 })
