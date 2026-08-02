@@ -84,6 +84,7 @@ const profesionalSchema = z.object({
   planta: vacioO(['Transitorio', 'PermanenteInterino', 'PermanenteEfectivo']),
   nroExpediente: z.string(),
   tipo: vacioO(['Asistencial', 'NoAsistencial', 'CP']),
+  fechaIngreso: z.string(),
 })
 
 export type ProfesionalFormValues = z.infer<typeof profesionalSchema>
@@ -111,6 +112,7 @@ const valoresPorDefecto: ProfesionalFormValues = {
   planta: '' as never,
   nroExpediente: '',
   tipo: '' as never,
+  fechaIngreso: '',
 }
 
 const opcionesSexo = [
@@ -216,6 +218,7 @@ export function ProfesionalForm({ modo, valoresIniciales, onSubmit }: Profesiona
       planta: aNuloSiVacio(values.planta) as ProfesionalRequestPayload['planta'],
       nroExpediente: aNuloSiVacio(values.nroExpediente),
       tipo: aNuloSiVacio(values.tipo) as ProfesionalRequestPayload['tipo'],
+      fechaIngreso: aNuloSiVacio(values.fechaIngreso),
     })
   }
 
@@ -400,6 +403,10 @@ export function ProfesionalForm({ modo, valoresIniciales, onSubmit }: Profesiona
         <Field>
           <FieldLabel htmlFor="nroExpediente">N. de expediente</FieldLabel>
           <Input id="nroExpediente" {...register('nroExpediente')} />
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="fechaIngreso">Fecha de ingreso</FieldLabel>
+          <Input id="fechaIngreso" type="date" {...register('fechaIngreso')} />
         </Field>
         <SelectField
           id="tipo"

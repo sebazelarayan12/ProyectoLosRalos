@@ -29,6 +29,7 @@ public class Profesional
     public Planta? Planta { get; set; }
     public string? NroExpediente { get; set; }
     public TipoLegajo? Tipo { get; set; }
+    public DateOnly? FechaIngreso { get; set; }
     public bool Activo { get; set; } = true;
     public DateTime FechaCreacion { get; set; }
     public DateTime FechaActualizacion { get; set; }

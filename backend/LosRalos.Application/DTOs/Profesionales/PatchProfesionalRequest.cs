@@ -61,4 +61,6 @@ public class PatchProfesionalRequest
     public string? NroExpediente { get; set; }
 
     public TipoLegajo? Tipo { get; set; }
+
+    public DateOnly? FechaIngreso { get; set; }
 }

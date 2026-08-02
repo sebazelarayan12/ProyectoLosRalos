@@ -36,6 +36,7 @@ function aValoresFormulario(detalle: ProfesionalDetalle): ProfesionalFormValues 
     planta: detalle.planta ?? '',
     nroExpediente: detalle.nroExpediente ?? '',
     tipo: detalle.tipo ?? '',
+    fechaIngreso: detalle.fechaIngreso ?? '',
   }
 }
 

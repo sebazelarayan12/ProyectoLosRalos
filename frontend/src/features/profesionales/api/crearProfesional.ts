@@ -28,6 +28,7 @@ export type ProfesionalRequestPayload = {
   planta: ProfesionalDetalle['planta']
   nroExpediente: string | null
   tipo: ProfesionalDetalle['tipo']
+  fechaIngreso: string | null
 }
 
 export function crearProfesional(

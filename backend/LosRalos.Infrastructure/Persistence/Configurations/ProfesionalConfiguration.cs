@@ -38,6 +38,7 @@ public class ProfesionalConfiguration : IEntityTypeConfiguration<Profesional>
         builder.Property(p => p.Email).HasMaxLength(150);
         builder.Property(p => p.Matricula).HasMaxLength(50);
         builder.Property(p => p.NroExpediente).HasMaxLength(50);
+        builder.Property(p => p.FechaIngreso);
         builder.Property(p => p.Activo).IsRequired();
         builder.Property(p => p.FechaCreacion).IsRequired();
         builder.Property(p => p.FechaActualizacion).IsRequired();

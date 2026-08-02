@@ -42,6 +42,7 @@ const valoresValidos: ProfesionalFormValues = {
   planta: 'Transitorio',
   nroExpediente: '',
   tipo: 'NoAsistencial',
+  fechaIngreso: '',
 }
 
 async function elegirEnCombobox(

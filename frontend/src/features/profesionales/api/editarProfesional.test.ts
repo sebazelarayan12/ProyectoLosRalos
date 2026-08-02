@@ -27,6 +27,7 @@ const payload: ProfesionalRequestPayload = {
   planta: 'Transitorio',
   nroExpediente: null,
   tipo: 'NoAsistencial',
+  fechaIngreso: null,
 }
 
 describe('editarProfesional', () => {
