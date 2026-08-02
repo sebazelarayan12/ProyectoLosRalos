@@ -25,6 +25,8 @@ public class ProfesionalDetalleResponse
     public string? Planta { get; init; }
     public string? NroExpediente { get; init; }
     public string? Tipo { get; init; }
+    public DateOnly? FechaIngreso { get; init; }
+    public int? AntiguedadAnios { get; init; }
     public bool Activo { get; init; }
     public DateTime FechaCreacion { get; init; }
     public DateTime FechaActualizacion { get; init; }

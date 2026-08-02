@@ -1,6 +1,9 @@
 using System.Security.Claims;
+using System.Text.Json;
+using LosRalos.Application.DTOs.Documentos;
 using LosRalos.Application.DTOs.Profesionales;
 using LosRalos.Application.Entities.Enums;
+using LosRalos.Application.Exceptions;
 using LosRalos.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -147,5 +150,37 @@ public class ProfesionalesController(IProfesionalService service, IDocumentoServ
 
         return CreatedAtAction(
             nameof(DocumentosController.GetFile), "Documentos", new { id = result.Id }, result);
+    }
+
+    [HttpPost("{id:guid}/documentos/lote")]
+    [Authorize(Roles = "Admin,Administrativo")]
+    [ProducesResponseType(201)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(404)]
+    [RequestSizeLimit(32 * 1024 * 1024)]
+    public async Task<IActionResult> SubirLegajoCombinado(
+        Guid id, IFormFile archivo, [FromForm] string segmentos, CancellationToken ct)
+    {
+        var usuarioId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var nombre = User.FindFirstValue("nombre") ?? string.Empty;
+        var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
+
+        List<SegmentoDocumentoRequest> lista;
+        try
+        {
+            lista = JsonSerializer.Deserialize<List<SegmentoDocumentoRequest>>(
+                segmentos, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? [];
+        }
+        catch (JsonException)
+        {
+            throw new AppValidationException("segmentos", "El formato de los segmentos es invalido");
+        }
+
+        await using var stream = archivo.OpenReadStream();
+        var result = await documentoService.SubirLoteAsync(
+            id, stream, archivo.FileName, lista, usuarioId, nombre, ip, ct)
+            .ConfigureAwait(false);
+
+        return StatusCode(StatusCodes.Status201Created, result);
     }
 }

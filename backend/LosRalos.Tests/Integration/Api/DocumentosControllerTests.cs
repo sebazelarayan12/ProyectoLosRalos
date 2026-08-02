@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using PdfSharpCore.Pdf;
 using Testcontainers.PostgreSql;
 
 namespace LosRalos.Tests.Integration.Api;
@@ -246,6 +247,86 @@ public class DocumentosControllerTests : IAsyncLifetime
 
         var body = await resp.Content.ReadFromJsonAsync<JsonElement>();
         body.GetProperty("tipoDocumento").GetProperty("nombre").GetString().Should().Be("CARNET VACUNACION");
+    }
+
+    private static byte[] CrearPdfDePaginas(int cantidad)
+    {
+        var documento = new PdfDocument();
+        for (var i = 0; i < cantidad; i++)
+            documento.AddPage();
+
+        using var stream = new MemoryStream();
+        documento.Save(stream, false);
+        return stream.ToArray();
+    }
+
+    private static MultipartFormDataContent BuildUploadLote(byte[] bytes, string fileName, string segmentosJson)
+    {
+        var content = new MultipartFormDataContent();
+        content.Add(new ByteArrayContent(bytes), "archivo", fileName);
+        content.Add(new StringContent(segmentosJson), "segmentos");
+        return content;
+    }
+
+    // --- POST /api/v1/profesionales/{id}/documentos/lote ---
+
+    [Fact]
+    public async Task SubirLote_DosSegmentosValidos_Retorna201ConDosDocumentos()
+    {
+        var profesionalId = await CrearProfesionalAsync("Benitez", "10.000.012", "20-10000012-0");
+        var pdf = CrearPdfDePaginas(4);
+        var segmentosJson = """[{"paginaInicio":1,"paginaFin":2,"tipoDocumentoNombre":"Titulo"},{"paginaInicio":3,"paginaFin":4,"tipoDocumentoNombre":"Dni Frente"}]""";
+
+        var resp = await _adminClient.PostAsync(
+            $"/api/v1/profesionales/{profesionalId}/documentos/lote",
+            BuildUploadLote(pdf, "legajo.pdf", segmentosJson));
+
+        resp.StatusCode.Should().Be(HttpStatusCode.Created);
+        var body = await resp.Content.ReadFromJsonAsync<JsonElement>();
+        body.GetArrayLength().Should().Be(2);
+        body[0].GetProperty("tipoDocumento").GetProperty("nombre").GetString().Should().Be("TITULO");
+        body[1].GetProperty("tipoDocumento").GetProperty("nombre").GetString().Should().Be("DNI FRENTE");
+    }
+
+    [Fact]
+    public async Task SubirLote_RangoSuperpuesto_Retorna400()
+    {
+        var profesionalId = await CrearProfesionalAsync("Cardozo", "10.000.013", "20-10000013-0");
+        var pdf = CrearPdfDePaginas(4);
+        var segmentosJson = """[{"paginaInicio":1,"paginaFin":3,"tipoDocumentoNombre":"Titulo"},{"paginaInicio":3,"paginaFin":4,"tipoDocumentoNombre":"Dni Frente"}]""";
+
+        var resp = await _adminClient.PostAsync(
+            $"/api/v1/profesionales/{profesionalId}/documentos/lote",
+            BuildUploadLote(pdf, "legajo.pdf", segmentosJson));
+
+        resp.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task SubirLote_ProfesionalNoExiste_Retorna404()
+    {
+        var pdf = CrearPdfDePaginas(2);
+        var segmentosJson = """[{"paginaInicio":1,"paginaFin":2,"tipoDocumentoNombre":"Titulo"}]""";
+
+        var resp = await _adminClient.PostAsync(
+            $"/api/v1/profesionales/{Guid.NewGuid()}/documentos/lote",
+            BuildUploadLote(pdf, "legajo.pdf", segmentosJson));
+
+        resp.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task SubirLote_AdministrativoToken_Retorna201()
+    {
+        var profesionalId = await CrearProfesionalAsync("Diaz", "10.000.014", "20-10000014-0");
+        var pdf = CrearPdfDePaginas(2);
+        var segmentosJson = """[{"paginaInicio":1,"paginaFin":2,"tipoDocumentoNombre":"Titulo"}]""";
+
+        var resp = await _administrativoClient.PostAsync(
+            $"/api/v1/profesionales/{profesionalId}/documentos/lote",
+            BuildUploadLote(pdf, "legajo.pdf", segmentosJson));
+
+        resp.StatusCode.Should().Be(HttpStatusCode.Created);
     }
 
     // --- GET /api/v1/documentos/{id}/file ---

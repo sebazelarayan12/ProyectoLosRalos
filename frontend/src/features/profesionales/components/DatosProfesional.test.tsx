@@ -27,6 +27,8 @@ const profesional: ProfesionalDetalle = {
   planta: 'PermanenteEfectivo',
   nroExpediente: '123/2020',
   tipo: 'NoAsistencial',
+  fechaIngreso: '2015-03-01',
+  antiguedadAnios: 11,
   activo: true,
   fechaCreacion: '2026-01-01T00:00:00Z',
   fechaActualizacion: '2026-01-01T00:00:00Z',
@@ -44,6 +46,14 @@ describe('DatosProfesional', () => {
     expect(screen.getByText('3811234567')).toBeInTheDocument()
     expect(screen.getByText('Tec Estadisticas')).toBeInTheDocument()
     expect(screen.getByText('Los Ralos')).toBeInTheDocument()
+    expect(screen.getByText('2015-03-01')).toBeInTheDocument()
+    expect(screen.getByText('11 años')).toBeInTheDocument()
+  })
+
+  test('muestra guion cuando no hay fecha de ingreso cargada', () => {
+    render(<DatosProfesional profesional={{ ...profesional, fechaIngreso: null, antiguedadAnios: null }} />)
+
+    expect(screen.getAllByText('-').length).toBeGreaterThan(0)
   })
 
   test('muestra guion cuando un campo opcional es null', () => {

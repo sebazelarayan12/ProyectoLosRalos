@@ -10,6 +10,10 @@ public interface IDocumentoService
         Guid profesionalId, Stream archivo, string nombreOriginal, string tipoDocumentoNombre,
         Guid usuarioId, string nombreUsuario, string? ip, CancellationToken ct);
 
+    Task<List<DocumentoResponse>> SubirLoteAsync(
+        Guid profesionalId, Stream archivo, string nombreOriginal, List<SegmentoDocumentoRequest> segmentos,
+        Guid usuarioId, string nombreUsuario, string? ip, CancellationToken ct);
+
     Task<ArchivoDescarga> ObtenerArchivoAsync(
         Guid documentoId, Guid usuarioId, string nombreUsuario, string? ip, CancellationToken ct);
 

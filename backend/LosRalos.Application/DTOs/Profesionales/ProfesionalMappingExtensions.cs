@@ -9,6 +9,15 @@ public static class ProfesionalMappingExtensions
     [return: System.Diagnostics.CodeAnalysis.NotNullIfNotNull(nameof(s))]
     private static string? MayusculasOpcional(string? s) => s is null ? null : Mayusculas(s);
 
+    private static int? CalcularAntiguedadAnios(DateOnly? fechaIngreso)
+    {
+        if (fechaIngreso is null) return null;
+        var hoy = DateOnly.FromDateTime(DateTime.UtcNow);
+        var anios = hoy.Year - fechaIngreso.Value.Year;
+        if (fechaIngreso.Value > hoy.AddYears(-anios)) anios--;
+        return anios;
+    }
+
 
     public static ProfesionalDetalleResponse ToDetalleResponse(this Profesional p) => new()
     {
@@ -35,6 +44,8 @@ public static class ProfesionalMappingExtensions
         Planta = p.Planta?.ToString(),
         NroExpediente = p.NroExpediente,
         Tipo = p.Tipo?.ToString(),
+        FechaIngreso = p.FechaIngreso,
+        AntiguedadAnios = CalcularAntiguedadAnios(p.FechaIngreso),
         Activo = p.Activo,
         FechaCreacion = p.FechaCreacion,
         FechaActualizacion = p.FechaActualizacion,
@@ -89,6 +100,7 @@ public static class ProfesionalMappingExtensions
         Planta = req.Planta,
         NroExpediente = MayusculasOpcional(req.NroExpediente),
         Tipo = req.Tipo,
+        FechaIngreso = req.FechaIngreso,
         Activo = true,
         FechaCreacion = DateTime.UtcNow,
         FechaActualizacion = DateTime.UtcNow
@@ -171,6 +183,9 @@ public static class ProfesionalMappingExtensions
 
         if (req.Tipo.HasValue && req.Tipo.Value != p.Tipo)
         { p.Tipo = req.Tipo.Value; changed.Add(nameof(Profesional.Tipo)); }
+
+        if (req.FechaIngreso.HasValue && req.FechaIngreso.Value != p.FechaIngreso)
+        { p.FechaIngreso = req.FechaIngreso.Value; changed.Add(nameof(Profesional.FechaIngreso)); }
 
         return changed;
     }

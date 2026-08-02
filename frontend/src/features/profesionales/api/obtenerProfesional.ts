@@ -34,6 +34,8 @@ export type ProfesionalDetalle = {
   planta: Planta | null
   nroExpediente: string | null
   tipo: TipoLegajo | null
+  fechaIngreso: string | null
+  antiguedadAnios: number | null
   activo: boolean
   fechaCreacion: string
   fechaActualizacion: string

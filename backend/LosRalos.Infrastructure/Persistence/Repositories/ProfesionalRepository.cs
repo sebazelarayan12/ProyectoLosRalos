@@ -107,7 +107,12 @@ public class ProfesionalRepository(AppDbContext db) : IProfesionalRepository
 
     public async Task<Profesional?> GetByIdAsync(Guid id, CancellationToken ct)
         => await db.Profesionales
-            .AsNoTracking()
+            // Identity resolution: sin esto, dos Documentos con el mismo TipoDocumento
+            // llegan como instancias CLR distintas con igual PK. UpdateAsync() adjunta
+            // todo el grafo via navegaciones y el ChangeTracker revienta al intentar
+            // trackear dos instancias con la misma key ("cannot be tracked because
+            // another instance with the same key value is already being tracked").
+            .AsNoTrackingWithIdentityResolution()
             .Include(p => p.Cargo)
             .Include(p => p.AreaOperativa)
             .Include(p => p.Documentos.Where(d => d.EliminadoEn == null))

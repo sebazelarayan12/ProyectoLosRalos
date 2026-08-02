@@ -28,6 +28,8 @@ describe('obtenerProfesional', () => {
       planta: 'PermanenteEfectivo',
       nroExpediente: '123/2020',
       tipo: 'NoAsistencial',
+      fechaIngreso: '2015-03-01',
+      antiguedadAnios: 11,
       activo: true,
       fechaCreacion: '2026-01-01T00:00:00Z',
       fechaActualizacion: '2026-01-01T00:00:00Z',

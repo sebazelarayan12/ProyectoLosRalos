@@ -64,6 +64,15 @@ export function DatosProfesional({ profesional }: DatosProfesionalProps) {
         <Campo label="Tipo de efector" valor={profesional.tipoEfector} />
         <Campo label="Nivel" valor={profesional.nivel} />
         <Campo label="Planta" valor={profesional.planta} />
+        <Campo label="Fecha de ingreso" valor={profesional.fechaIngreso} />
+        <Campo
+          label="Antiguedad"
+          valor={
+            profesional.antiguedadAnios === null
+              ? null
+              : `${profesional.antiguedadAnios} ${profesional.antiguedadAnios === 1 ? 'año' : 'años'}`
+          }
+        />
       </SectionCard>
     </div>
   )
