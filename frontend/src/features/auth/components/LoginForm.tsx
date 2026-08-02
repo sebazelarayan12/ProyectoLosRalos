@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Field, FieldGroup, FieldLabel, FieldError } from '@/components/ui/field'
 import { useAuth } from '@/features/auth/context/AuthContext'
 import { api } from '@/lib/api'
+import { extraerMensajeError } from '@/lib/extraerMensajeError'
 
 const loginSchema = z.object({
   email: z.string().min(1, 'Email requerido').email('Email invalido'),
@@ -42,8 +43,13 @@ export function LoginForm() {
       const { data } = await api.post<LoginResponse>('/auth/login', values)
       login(data.token, { nombre: data.nombre, rol: data.rol })
       navigate(data.rol === 'Administrativo' ? '/profesionales' : '/dashboard')
-    } catch {
-      setErrorApi('Credenciales invalidas')
+    } catch (error) {
+      const conRespuesta = error as { response?: unknown }
+      setErrorApi(
+        conRespuesta?.response
+          ? extraerMensajeError(error, 'No se pudo iniciar sesion. Intenta de nuevo.')
+          : 'No se pudo conectar con el servidor. Verifica tu conexion e intenta de nuevo.',
+      )
     }
   }
 
@@ -84,10 +90,7 @@ export function LoginForm() {
             className="flex items-start gap-2 rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
           >
             <AlertCircle className="mt-0.5 size-4 shrink-0" />
-            <span>
-              <strong className="font-semibold">{errorApi}.</strong> Verifica tu email y contraseña e
-              intenta de nuevo.
-            </span>
+            <span>{errorApi}</span>
           </div>
         )}
         <Button type="submit" className="w-full" disabled={isSubmitting}>
