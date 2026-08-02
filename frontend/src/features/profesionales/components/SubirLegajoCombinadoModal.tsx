@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
-import { FileStack, Loader2 } from 'lucide-react'
+import { Check, FileStack, Loader2, Upload } from 'lucide-react'
 import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -170,19 +170,34 @@ export function SubirLegajoCombinadoModal({
 
         <div className="flex flex-1 flex-col gap-3.5 overflow-y-auto">
           <Field>
-            <FieldLabel htmlFor="pdf-combinado">Seleccionar PDF combinado</FieldLabel>
+            <FieldLabel htmlFor="pdf-combinado">PDF combinado</FieldLabel>
             <input
               ref={inputRef}
               id="pdf-combinado"
               type="file"
               accept="application/pdf"
               aria-label="Seleccionar PDF combinado"
+              className="hidden"
               disabled={cargandoArchivo || mutation.isPending}
               onChange={(e) => {
                 const file = e.target.files?.[0]
                 if (file) void handleArchivo(file)
               }}
             />
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={cargandoArchivo || mutation.isPending}
+                onClick={() => inputRef.current?.click()}
+              >
+                <Upload />
+                Seleccionar PDF combinado
+              </Button>
+              {archivo && !cargandoArchivo && (
+                <span className="truncate text-xs text-muted-foreground">{archivo.name}</span>
+              )}
+            </div>
             {cargandoArchivo && (
               <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <Loader2 className="size-3.5 animate-spin" />
@@ -196,14 +211,29 @@ export function SubirLegajoCombinadoModal({
               <div className="grid grid-cols-4 gap-2">
                 {rango(1, totalPaginas).map((pagina) => {
                   const descartada = descartadasSet.has(pagina)
-                  const enSegmento = segmentos.some((s) => pagina >= s.paginaInicio && pagina <= s.paginaFin)
+                  const segmentoAsignado = segmentos.find(
+                    (s) => pagina >= s.paginaInicio && pagina <= s.paginaFin,
+                  )
+                  const enSegmento = segmentoAsignado !== undefined
                   return (
-                    <div key={pagina} className="flex flex-col items-center gap-1 rounded-lg border p-2">
-                      <img
-                        src={miniaturas[pagina - 1]}
-                        alt={`Pagina ${pagina}`}
-                        className="h-20 w-full object-contain"
-                      />
+                    <div
+                      key={pagina}
+                      className={`flex flex-col items-center gap-1 rounded-lg border p-2 ${
+                        enSegmento ? 'border-primary bg-primary/5' : ''
+                      }`}
+                    >
+                      <div className="relative w-full">
+                        <img
+                          src={miniaturas[pagina - 1]}
+                          alt={`Pagina ${pagina}`}
+                          className={`h-20 w-full object-contain ${enSegmento ? 'opacity-60' : ''}`}
+                        />
+                        {enSegmento && (
+                          <span className="absolute right-0 top-0 flex size-5 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                            <Check className="size-3.5" />
+                          </span>
+                        )}
+                      </div>
                       {descartada ? (
                         <>
                           <span className="text-muted-foreground text-xs">Pag. {pagina} (descartada)</span>
@@ -218,6 +248,10 @@ export function SubirLegajoCombinadoModal({
                             Recuperar
                           </Button>
                         </>
+                      ) : enSegmento ? (
+                        <span className="text-primary text-xs font-medium">
+                          Pag. {pagina} — asignada
+                        </span>
                       ) : (
                         <>
                           <label className="flex items-center gap-1 text-xs">
@@ -225,23 +259,21 @@ export function SubirLegajoCombinadoModal({
                               type="checkbox"
                               aria-label={`Pagina ${pagina}`}
                               checked={seleccionadasSet.has(pagina)}
-                              disabled={enSegmento || mutation.isPending}
+                              disabled={mutation.isPending}
                               onChange={() => toggleSeleccionada(pagina)}
                             />
                             Pag. {pagina}
                           </label>
-                          {!enSegmento && (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              disabled={mutation.isPending}
-                              aria-label={`Descartar pagina ${pagina}`}
-                              onClick={() => descartarPagina(pagina)}
-                            >
-                              Descartar
-                            </Button>
-                          )}
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            disabled={mutation.isPending}
+                            aria-label={`Descartar pagina ${pagina}`}
+                            onClick={() => descartarPagina(pagina)}
+                          >
+                            Descartar
+                          </Button>
                         </>
                       )}
                     </div>

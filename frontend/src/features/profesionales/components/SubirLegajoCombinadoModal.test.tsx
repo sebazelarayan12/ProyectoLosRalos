@@ -174,7 +174,8 @@ describe('SubirLegajoCombinadoModal', () => {
     await user.click(screen.getByRole('button', { name: /armar segmento/i }))
 
     expect(screen.getByText(/paginas 1-2/i)).toBeInTheDocument()
-    expect(screen.getByRole('checkbox', { name: /pagina 1/i })).toBeDisabled()
+    expect(screen.getByText(/pag\. 1 — asignada/i)).toBeInTheDocument()
+    expect(screen.queryByRole('checkbox', { name: /pagina 1/i })).not.toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: /quitar segmento paginas 1-2/i }))
 
