@@ -168,7 +168,7 @@ export function SubirLegajoCombinadoModal({
           <DialogTitle>Subir legajo combinado (PDF)</DialogTitle>
         </DialogHeader>
 
-        <div className="flex flex-1 flex-col gap-3.5 overflow-y-auto">
+        <div className="flex flex-1 flex-col gap-3.5 overflow-x-hidden overflow-y-auto">
           <Field>
             <FieldLabel htmlFor="pdf-combinado">PDF combinado</FieldLabel>
             <input
@@ -184,7 +184,7 @@ export function SubirLegajoCombinadoModal({
                 if (file) void handleArchivo(file)
               }}
             />
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Button
                 type="button"
                 variant="outline"
@@ -195,7 +195,9 @@ export function SubirLegajoCombinadoModal({
                 Seleccionar PDF combinado
               </Button>
               {archivo && !cargandoArchivo && (
-                <span className="truncate text-xs text-muted-foreground">{archivo.name}</span>
+                <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
+                  {archivo.name}
+                </span>
               )}
             </div>
             {cargandoArchivo && (
