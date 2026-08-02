@@ -297,8 +297,8 @@ export function SubirLegajoCombinadoModal({
                   <FieldLabel htmlFor={`tipo-segmento-${indice}`}>
                     Paginas {segmento.paginaInicio}-{segmento.paginaFin}
                   </FieldLabel>
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="min-w-0 flex-1">
                       <ComboboxTipoDocumento
                         id={`tipo-segmento-${indice}`}
                         value={segmento.tipoDocumentoNombre}
