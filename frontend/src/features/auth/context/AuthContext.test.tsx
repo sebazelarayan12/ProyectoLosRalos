@@ -55,4 +55,13 @@ describe('AuthContext', () => {
     expect(result.current.token).toBe('existing-token')
     expect(result.current.usuario).toEqual({ nombre: 'Beto', rol: 'Administrativo' })
   })
+
+  test('usuario corrupto en localStorage no rompe el montaje, arranca sin usuario', () => {
+    localStorage.setItem('auth_token', 'existing-token')
+    localStorage.setItem('auth_usuario', '{esto no es json valido')
+
+    const { result } = renderHook(() => useAuth(), { wrapper })
+
+    expect(result.current.usuario).toBeNull()
+  })
 })
